@@ -1,5 +1,10 @@
 Cálculo de Pensión de Vejez en Colombia (Régimen de Prima Media)
 
+## Tabla de contenido
+ 
+- [Entradas](#entradas)
+- [Proceso](#proceso)
+- [Salidas](#salidas)
 Entradas
 El cálculo necesita cinco datos de la persona que solicita la pensión:
 -Ingreso Base de Liquidación (IBL): es el promedio de los salarios que la persona cotizó durante su vida laboral, ya ajustados por inflación (IPC) al año en que se hace el cálculo. La norma permite tomar como referencia los últimos 10 años de cotización o toda la vida laboral, lo que resulte más favorable para la persona.
@@ -20,6 +25,7 @@ El cálculo se resuelve en dos partes: primero se verifica si la persona tiene d
 
 1. Verificar el derecho a la pensión. La persona debe cumplir dos condiciones al mismo tiempo: haber cotizado al menos 1.300 semanas, y haber cumplido la edad mínima según su sexo (57 años si es mujer, 62 años si es hombre). Si falta cualquiera de las dos condiciones, el proceso se detiene ahí y el sistema debe devolver un error explicando cuál requisito no se cumplió; no tiene sentido seguir calculando un valor de pensión para alguien que todavía no tiene derecho a ella.
 
+La persona debe cumplir dos condiciones al mismo tiempo: haber cotizado al menos **1.300 semanas**, y haber cumplido la edad mínima según su sexo (**57 años** si es mujer, **62 años** si es hombre). Si falta cualquiera de las dos condiciones, el proceso se detiene ahí y el sistema devuelve un error explicando cuál requisito no se cumplió.
 2. Calcular la tasa de reemplazo. Si la persona sí cumple los requisitos, se calcula qué porcentaje del IBL le corresponde recibir como pensión mensual (la "tasa de reemplazo"). Este porcentaje no es fijo: depende de qué tan alto es el ingreso de la persona y de cuántas semanas cotizó por encima del mínimo. La lógica es la siguiente:
 
 Se calcula cuántos salarios mínimos representa el IBL (dividiendo el IBL entre el SMLMV).
@@ -28,6 +34,7 @@ Si la persona cotizó más de las 1.300 semanas mínimas, la tasa aumenta 1,5 pu
 La tasa final —ya con el aumento por semanas adicionales incluido— nunca puede superar el 80%, sin importar cuántas semanas adicionales tenga la persona.
 
 3. Calcular el valor de la pensión. El valor mensual de la pensión es el IBL multiplicado por la tasa de reemplazo obtenida en el paso anterior. Pero existe una garantía adicional: ninguna pensión reconocida puede ser inferior a 1 SMLMV. Si el resultado de la multiplicación da un valor menor al salario mínimo, se paga el salario mínimo en su lugar.
+El valor mensual es `IBL × tasa de reemplazo`. Existe una garantía adicional: **ninguna pensión reconocida puede ser inferior a 1 SMLMV**. Si el resultado de la multiplicación da un valor menor al salario mínimo, se paga el salario mínimo en su lugar.
 
 Salidas
 El sistema debe producir uno de estos dos tipos de resultado:
