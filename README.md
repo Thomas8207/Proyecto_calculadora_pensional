@@ -1,6 +1,7 @@
 Cálculo de Pensión de Vejez en Colombia (Régimen de Prima Media)
 
 ## Tabla de contenido
+Creadores del proyecto:Thomas Leon Torres y Andres Felipe Zora
  
 - [Entradas](#entradas)
 - [Proceso](#proceso)
