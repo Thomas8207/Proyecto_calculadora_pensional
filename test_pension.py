@@ -139,3 +139,109 @@ class TestPension(unittest.TestCase):
 
         with self.assertRaises(logica_pension.SalariominimolegalvigenteCero):
             logica_pension.calcular_pension(ibc_ultimos_10, ibc_toda_vida, smlmv, semanas, edad, sexo)
+
+    def test_semanas_negativas(self):
+        ibc_ultimos_10 = 4_800_000
+        ibc_toda_vida = 5_000_000
+        smlmv = 2_000_000
+        semanas = -100
+        edad = 65
+        sexo = "M"
+
+        with self.assertRaises(logica_pension.SemanasNegativas):
+            logica_pension.calcular_pension(ibc_ultimos_10, ibc_toda_vida, smlmv, semanas, edad, sexo)
+
+    def test_ibl_negativo(self):
+        ibc_ultimos_10 = -2_900_000
+        ibc_toda_vida = -3_000_000
+        smlmv = 2_000_000
+        semanas = 1300
+        edad = 60
+        sexo = "F"
+
+        with self.assertRaises(logica_pension.IblNegativo):
+            logica_pension.calcular_pension(ibc_ultimos_10, ibc_toda_vida, smlmv, semanas, edad, sexo)
+
+    def test_edad_insuficiente(self):
+        ibc_ultimos_10 = 4_800_000
+        ibc_toda_vida = 5_000_000
+        smlmv = 2_000_000
+        semanas = 1300
+        edad = 45
+        sexo = "F"
+
+        with self.assertRaises(logica_pension.EdadInsuficiente):
+            logica_pension.calcular_pension(ibc_ultimos_10, ibc_toda_vida, smlmv, semanas, edad, sexo)
+
+    # =========================
+    # CASOS EXCEPCIONALES
+    # =========================
+
+    def test_excepcional_edad_limite_mujer(self):
+        ibc_ultimos_10 = 1_950_000
+        ibc_toda_vida = 2_000_000
+        smlmv = 2_000_000
+        semanas = 1300
+        edad = 57
+        sexo = "F"
+
+        pension_esperada = 2_000_000.00
+
+        pension_calculada = logica_pension.calcular_pension(ibc_ultimos_10, ibc_toda_vida, smlmv, semanas, edad, sexo)
+        self.assertAlmostEqual(pension_esperada, pension_calculada, 2)
+
+    def test_excepcional_edad_limite_hombre(self):
+        ibc_ultimos_10 = 1_950_000
+        ibc_toda_vida = 2_000_000
+        smlmv = 2_000_000
+        semanas = 1300
+        edad = 62
+        sexo = "M"
+
+        pension_esperada = 2_000_000.00
+
+        pension_calculada = logica_pension.calcular_pension(ibc_ultimos_10, ibc_toda_vida, smlmv, semanas, edad, sexo)
+        self.assertAlmostEqual(pension_esperada, pension_calculada, 2)
+
+    def test_excepcional_r_base_bajo_piso_55(self):
+        ibc_ultimos_10 = 32_000_000
+        ibc_toda_vida = 32_500_000
+        smlmv = 2_000_000
+        semanas = 1300
+        edad = 65
+        sexo = "M"
+
+        pension_esperada = 18_646_875.00
+
+        pension_calculada = logica_pension.calcular_pension(ibc_ultimos_10, ibc_toda_vida, smlmv, semanas, edad, sexo)
+        self.assertAlmostEqual(pension_esperada, pension_calculada, 2)
+
+    def test_excepcional_r_total_llega_tope_80(self):
+        ibc_ultimos_10 = 1_250_000
+        ibc_toda_vida = 1_300_000
+        smlmv = 2_000_000
+        semanas = 1800
+        edad = 60
+        sexo = "F"
+
+        pension_esperada = 2_000_000.00
+
+        pension_calculada = logica_pension.calcular_pension(ibc_ultimos_10, ibc_toda_vida, smlmv, semanas, edad, sexo)
+        self.assertAlmostEqual(pension_esperada, pension_calculada, 2)
+
+    def test_excepcional_49_semanas_no_alcanza_incremento(self):
+        ibc_ultimos_10 = 1_250_000
+        ibc_toda_vida = 1_300_000
+        smlmv = 2_000_000
+        semanas = 1349
+        edad = 63
+        sexo = "M"
+
+        pension_esperada = 2_000_000.00
+
+        pension_calculada = logica_pension.calcular_pension(ibc_ultimos_10, ibc_toda_vida, smlmv, semanas, edad, sexo)
+        self.assertAlmostEqual(pension_esperada, pension_calculada, 2)
+
+
+if __name__ == "__main__":
+    unittest.main()
