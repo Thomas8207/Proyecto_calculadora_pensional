@@ -5,6 +5,7 @@ Cálculo de Pensión de Vejez en Colombia (Régimen de Prima Media)
 - [Entradas](#entradas)
 - [Proceso](#proceso)
 - [Salidas](#salidas)
+
 Entradas
 El cálculo necesita cinco datos de la persona que solicita la pensión:
 -Ingreso Base de Liquidación (IBL): es el promedio de los salarios que la persona cotizó durante su vida laboral, ya ajustados por inflación (IPC) al año en que se hace el cálculo. La norma permite tomar como referencia los últimos 10 años de cotización o toda la vida laboral, lo que resulte más favorable para la persona.
