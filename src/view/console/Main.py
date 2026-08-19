@@ -1,4 +1,5 @@
-import logica_pension
+from src.model import logica_pension
+
 
 def main():
     print("=" * 50)
@@ -21,12 +22,12 @@ def main():
         sexo = input("Sexo (M/F): ").upper()
 
         # Calcular pensión
-        pension = logica_pension.calcular_pension(ibc_ultimos_10,ibc_toda_vida,smlmv,semanas,edad,sexo)
+        pension = logica_pension.calcular_pension(ibc_ultimos_10, ibc_toda_vida, smlmv, semanas, edad, sexo)
 
         # Mostrar resultados
-        ibl = logica_pension.calcular_ibl(ibc_ultimos_10,ibc_toda_vida)
+        ibl = logica_pension.calcular_ibl(ibc_ultimos_10, ibc_toda_vida)
 
-        s = logica_pension.calcular_s(ibl,smlmv)
+        s = logica_pension.calcular_s(ibl, smlmv)
 
         r_base = logica_pension.calcular_r_base_55(s)
 
@@ -34,7 +35,7 @@ def main():
 
         incremento = logica_pension.incremento_porcentual(semanas_adi)
 
-        r_total = logica_pension.calcular_r_total(r_base,incremento)
+        r_total = logica_pension.calcular_r_total(r_base, incremento)
 
         print("\n" + "=" * 50)
         print("             RESULTADOS")

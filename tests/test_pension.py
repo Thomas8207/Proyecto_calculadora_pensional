@@ -1,6 +1,7 @@
+import sys
+sys.path.append("src")
 import unittest
-import logica_pension
-
+from src.model import logica_pension
 
 
 class TestPension(unittest.TestCase):
@@ -17,7 +18,7 @@ class TestPension(unittest.TestCase):
         pension_esperada = 6_300_000.00
 
         # Invocar la funcionalidad que resuelve el problema
-        pension_calculada = logica_pension.calcular_pension(ibc_ultimos_10,ibc_toda_vida,smlmv,semanas,edad,sexo)
+        pension_calculada = logica_pension.calcular_pension(ibc_ultimos_10, ibc_toda_vida, smlmv, semanas, edad, sexo)
 
         # verificamos el resultado
         self.assertAlmostEqual(pension_esperada,pension_calculada,2)
@@ -34,7 +35,7 @@ class TestPension(unittest.TestCase):
         pension_esperada = 2_000_000.00
 
         # Invocar la funcionalidad que resuelve el problema
-        pension_calculada = logica_pension.calcular_pension(ibc_ultimos_10,ibc_toda_vida,smlmv,semanas,edad,sexo)
+        pension_calculada = logica_pension.calcular_pension(ibc_ultimos_10, ibc_toda_vida, smlmv, semanas, edad, sexo)
 
         # verificamos el resultado
         self.assertAlmostEqual(pension_esperada, pension_calculada, 2)
@@ -51,7 +52,7 @@ class TestPension(unittest.TestCase):
         pension_esperada = 2_750_475.00
 
         # Invocar la funcionalidad que resuelve el problema
-        pension_calculada = logica_pension.calcular_pension(ibc_ultimos_10,ibc_toda_vida,smlmv,semanas,edad,sexo)
+        pension_calculada = logica_pension.calcular_pension(ibc_ultimos_10, ibc_toda_vida, smlmv, semanas, edad, sexo)
 
         # verificamos el resultado
         self.assertAlmostEqual(pension_esperada, pension_calculada, 2)
@@ -68,7 +69,7 @@ class TestPension(unittest.TestCase):
         pension_esperada = 11_949_600.00
 
         # Invocar la funcionalidad que resuelve el problema
-        pension_calculada = logica_pension.calcular_pension(ibc_ultimos_10,ibc_toda_vida,smlmv,semanas,edad,sexo)
+        pension_calculada = logica_pension.calcular_pension(ibc_ultimos_10, ibc_toda_vida, smlmv, semanas, edad, sexo)
 
         # verificamos el resultado
         self.assertAlmostEqual(pension_esperada, pension_calculada, 2)
@@ -85,7 +86,7 @@ class TestPension(unittest.TestCase):
         pension_esperada = 2_080_000.00
 
         # Invocar la funcionalidad que resuelve el problema
-        pension_calculada = logica_pension.calcular_pension(ibc_ultimos_10,ibc_toda_vida,smlmv,semanas,edad,sexo)
+        pension_calculada = logica_pension.calcular_pension(ibc_ultimos_10, ibc_toda_vida, smlmv, semanas, edad, sexo)
 
         # verificamos el resultado
         self.assertAlmostEqual(pension_esperada, pension_calculada, 2)
@@ -102,7 +103,7 @@ class TestPension(unittest.TestCase):
         pension_esperada = 15_340_000.00
 
         # Invocar la funcionalidad que resuelve el problema
-        pension_calculada = logica_pension.calcular_pension(ibc_ultimos_10,ibc_toda_vida,smlmv,semanas,edad,sexo)
+        pension_calculada = logica_pension.calcular_pension(ibc_ultimos_10, ibc_toda_vida, smlmv, semanas, edad, sexo)
 
         # verificamos el resultado
         self.assertAlmostEqual(pension_esperada, pension_calculada, 2)
