@@ -64,7 +64,7 @@ def cumple_requisitos(semanas_cotizadas: int, edad: int, sexo: str) -> bool:
 def calcular_pension(ibc_ultimos_10: float, ibc_toda_vida: float, salario_minimo_legal: int, semanas_cotizadas: int, edad: int, sexo: str) -> float:
     ingreso_base_liquidacion = calcular_ibl(ibc_ultimos_10, ibc_toda_vida)
 
-    if semanas_cotizadas < SEMANAS_MINIMAS:
+    if semanas_cotizadas < 0:
         raise SemanasNegativas("Las semanas cotizadas no pueden ser negativas")
 
     if ingreso_base_liquidacion < 0:

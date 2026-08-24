@@ -1,5 +1,3 @@
-import sys
-sys.path.append("src")
 import unittest
 from src.model import logica_pension
 
@@ -138,7 +136,7 @@ class TestPension(unittest.TestCase):
         edad = 62
         sexo = "M"
 
-        with self.assertRaises(logica_pension.SalariominimolegalvigenteCero):
+        with self.assertRaises(logica_pension.SalarioMinimoNoValido):
             logica_pension.calcular_pension(ibc_ultimos_10, ibc_toda_vida, smlmv, semanas, edad, sexo)
 
     def test_semanas_negativas(self):
