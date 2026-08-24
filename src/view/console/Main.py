@@ -1,5 +1,4 @@
-from src.model import logica_pension
-
+import logica_pension
 
 def main():
     print("=" * 50)
@@ -13,7 +12,7 @@ def main():
 
         ibc_toda_vida = float(input("IBC de toda la vida laboral: "))
 
-        smlmv = float(input("Salario mínimo legal vigente: "))
+        salario_minimo_legal = int(input("Salario mínimo legal vigente: "))
 
         semanas = int(input("Semanas cotizadas: "))
 
@@ -22,33 +21,29 @@ def main():
         sexo = input("Sexo (M/F): ").upper()
 
         # Calcular pensión
-        pension = logica_pension.calcular_pension(ibc_ultimos_10, ibc_toda_vida, smlmv, semanas, edad, sexo)
+        pension = logica_pension.calcular_pension(ibc_ultimos_10,ibc_toda_vida,salario_minimo_legal,semanas,edad,sexo)
 
         # Mostrar resultados
-        ibl = logica_pension.calcular_ibl(ibc_ultimos_10, ibc_toda_vida)
+        ingreso_base_liquidacion = logica_pension.calcular_ibl(ibc_ultimos_10,ibc_toda_vida)
 
-<<<<<<<< HEAD:src/view/console/Main.py
-        s = logica_pension.calcular_s(ibl, smlmv)
-========
-        s = logica_pension.calcular_relacion_ibl_smlmv(ibl,smlmv)
->>>>>>>> eafabaa (Arreglado 7 issues del proyecto 1, 2, 4, 6, 7, 8, 9, 14):main.py
+        relacion_ibl_smlmv = logica_pension.calcular_relacion_ibl_smlmv(ingreso_base_liquidacion,salario_minimo_legal)
 
-        r_base = logica_pension.calcular_r_base_55(s)
+        tasa_reemplazo_base = logica_pension.calcular_r_base_55(relacion_ibl_smlmv)
 
-        semanas_adi = logica_pension.semanas_adicionales_test(semanas)
+        semanas_adicionales = logica_pension.semanas_adicionales_test(semanas)
 
-        incremento = logica_pension.incremento_porcentual(semanas_adi)
+        incremento = logica_pension.incremento_porcentual(semanas_adicionales)
 
-        r_total = logica_pension.calcular_r_total(r_base, incremento)
+        r_total = logica_pension.calcular_r_total(tasa_reemplazo_base,incremento)
 
         print("\n" + "=" * 50)
         print("             RESULTADOS")
         print("=" * 50)
 
-        print(f"IBL calculado: ${ibl:,.2f}")
-        print(f"Salarios mínimos (S): {s:.2f}")
-        print(f"Porcentaje base: {r_base:.2f}%")
-        print(f"Semanas adicionales: {semanas_adi}")
+        print(f"IBL calculado: ${ingreso_base_liquidacion:,.2f}")
+        print(f"Salarios mínimos (S): {relacion_ibl_smlmv:.2f}")
+        print(f"Porcentaje base: {tasa_reemplazo_base:.2f}%")
+        print(f"Semanas adicionales: {semanas_adicionales}")
         print(f"Incremento: {incremento:.2f}%")
         print(f"Porcentaje total: {r_total:.2f}%")
         print(f"PENSIÓN ESTIMADA: ${pension:,.2f}")
@@ -63,7 +58,7 @@ def main():
     except logica_pension.IblNegativo as e:
         print(f"\nERROR: {e}")
 
-    except logica_pension.SalariominimolegalvigenteCero as e:
+    except logica_pension.SalarioMinimoNoValido as e:
         print(f"\nERROR: {e}")
 
     except logica_pension.SemanasNegativas as e:
