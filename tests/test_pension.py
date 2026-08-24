@@ -1,7 +1,7 @@
 import sys
 sys.path.append("src")
 import unittest
-from src.model import logica_pension
+from model import logica_pension
 
 
 class TestPension(unittest.TestCase):
