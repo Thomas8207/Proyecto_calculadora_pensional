@@ -1,10 +1,21 @@
+SEMANAS_MINIMAS = 1300
+SEMANAS_POR_INCREMENTO = 50
+INCREMENTO_PORCENTUAL = 1.5
+
+TASA_REEMPLAZO_INICIAL = 65.5
+FACTOR_REDUCCION_POR_SALARIO = 0.5
+TASA_REEMPLAZO_MINIMA = 55
+TASA_REEMPLAZO_MAXIMA = 80
+
+EDAD_MINIMA_MUJER = 57
+EDAD_MINIMA_HOMBRE = 62
 class  SemanasInsuficientes(Exception):
     pass
 
 class IblCero(Exception):
     pass
 
-class SalariominimolegalvigenteCero(Exception):
+class SalarioMinimoNoValido(Exception):
     pass
 
 class SemanasNegativas(Exception):
@@ -17,44 +28,44 @@ class EdadInsuficiente(Exception):
     pass
 
 
-def calcular_ibl(ibc_ultimos_10, ibc_toda_vida):
+def calcular_ibl(ibc_ultimos_10: float, ibc_toda_vida: float) -> float:
     ibl = max(ibc_ultimos_10, ibc_toda_vida)
     return ibl
 
-def calcular_s(ibl, smlmv):
-    s = ibl / smlmv
-    return s
+def calcular_relacion_ibl_smlmv(ingreso_base_liquidacion: float, salario_minimo_legal: int) -> float:
+    relacion_ibl_smlmv = ingreso_base_liquidacion / salario_minimo_legal
+    return relacion_ibl_smlmv
 
-def calcular_r_base_55(s):
-    r_base = max(65.5 - s * 0.5, 55)
+def calcular_r_base_55(relacion_ibl_smlmv: float) -> float:
+    r_base = max(TASA_REEMPLAZO_INICIAL - relacion_ibl_smlmv * FACTOR_REDUCCION_POR_SALARIO, TASA_REEMPLAZO_MINIMA)
     return r_base
 
 
-def semanas_adicionales(semanas_cotizadas):
-    sema_adi = max(semanas_cotizadas - 1300, 0)
-    return sema_adi
+def semanas_adicionales_test(semanas_cotizadas: int) -> int:
+    semanas_adicionales = max(semanas_cotizadas - SEMANAS_MINIMAS, 0)
+    return semanas_adicionales
 
 
-def incremento_porcentual(sema_adi):
-    incremento = int(sema_adi / 50) * 1.5
+def incremento_porcentual(semanas_adicionales : int) -> float:
+    incremento = int(semanas_adicionales / SEMANAS_POR_INCREMENTO) * INCREMENTO_PORCENTUAL
     return incremento
 
 
-def calcular_r_total(r_base, incremento):
-    r_total = min(r_base + incremento, 80)
+def calcular_r_total(r_base: float, incremento: float) -> float:
+    r_total = min(r_base + incremento, TASA_REEMPLAZO_MAXIMA)
     return r_total
 
 
-def cumple_requisitos(semanas_cotizadas, edad, sexo):
-    return (semanas_cotizadas >= 1300 and((sexo == "F" and edad >= 57) or
-            (sexo == "M" and edad >= 62)))
+def cumple_requisitos(semanas_cotizadas: int, edad: int, sexo: str) -> bool:
+    return (semanas_cotizadas >= SEMANAS_MINIMAS and((sexo == "F" and edad >= EDAD_MINIMA_MUJER) or
+            (sexo == "M" and edad >= EDAD_MINIMA_HOMBRE)))
 
 
-def calcular_pension(ibc_ultimos_10, ibc_toda_vida, smlmv, semanas_cotizadas, edad, sexo):
+def calcular_pension(ibc_ultimos_10: float, ibc_toda_vida: float, smlmv: float, semanas_cotizadas: int, edad: int, sexo: str) -> float:
 
     ibl = calcular_ibl(ibc_ultimos_10, ibc_toda_vida)
 
-    if semanas_cotizadas < 0:
+    if semanas_cotizadas < SEMANAS_MINIMAS:
         raise SemanasNegativas("Las semanas cotizadas no pueden ser negativas")
 
     if ibl < 0:
@@ -64,18 +75,21 @@ def calcular_pension(ibc_ultimos_10, ibc_toda_vida, smlmv, semanas_cotizadas, ed
         raise IblCero("El ibl no puede ser cero")
 
     if smlmv == 0:
-        raise SalariominimolegalvigenteCero("El salario minimo mensual legal vigente no puede ser 0")
+        raise SalarioMinimoNoValido("El salario minimo mensual legal vigente no puede ser 0")
 
-    if semanas_cotizadas < 1300 :
+    if semanas_cotizadas < SEMANAS_MINIMAS :
         raise SemanasInsuficientes("semanas_cotizadas menores a las minimas necesarias")
 
-    if sexo == "F" and edad < 57 or sexo == "M" and edad <62:
+    if (
+        (sexo == "F" and edad < EDAD_MINIMA_MUJER)
+        or
+        (sexo == "M" and edad < EDAD_MINIMA_HOMBRE)):
         raise EdadInsuficiente("La edad que tiene es menor a la requerida para acceder a pension")
 
-    s = calcular_s(ibl, smlmv)
-    r_base = calcular_r_base_55(s)
-    sema_adi = semanas_adicionales(semanas_cotizadas)
-    incremento = incremento_porcentual(sema_adi)
+    relacion_ibl_smlmv = calcular_relacion_ibl_smlmv(ibl, smlmv)
+    r_base = calcular_r_base_55(relacion_ibl_smlmv)
+    semanas_adicionales = semanas_adicionales_test(semanas_cotizadas)
+    incremento = incremento_porcentual(semanas_adicionales)
     r_total = calcular_r_total(r_base, incremento)
 
 
@@ -83,4 +97,4 @@ def calcular_pension(ibc_ultimos_10, ibc_toda_vida, smlmv, semanas_cotizadas, ed
         pension = round(max(ibl * r_total / 100, smlmv), 2)
         return pension
     else:
-        return ""
+        raise EdadInsuficiente()

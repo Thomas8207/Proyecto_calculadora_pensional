@@ -27,11 +27,15 @@ def main():
         # Mostrar resultados
         ibl = logica_pension.calcular_ibl(ibc_ultimos_10, ibc_toda_vida)
 
+<<<<<<<< HEAD:src/view/console/Main.py
         s = logica_pension.calcular_s(ibl, smlmv)
+========
+        s = logica_pension.calcular_relacion_ibl_smlmv(ibl,smlmv)
+>>>>>>>> eafabaa (Arreglado 7 issues del proyecto 1, 2, 4, 6, 7, 8, 9, 14):main.py
 
         r_base = logica_pension.calcular_r_base_55(s)
 
-        semanas_adi = logica_pension.semanas_adicionales(semanas)
+        semanas_adi = logica_pension.semanas_adicionales_test(semanas)
 
         incremento = logica_pension.incremento_porcentual(semanas_adi)
 
