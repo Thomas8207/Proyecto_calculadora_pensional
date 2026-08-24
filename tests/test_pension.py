@@ -1,3 +1,5 @@
+import sys
+sys.path.append("src")
 import unittest
 from src.model import logica_pension
 
