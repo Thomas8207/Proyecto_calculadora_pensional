@@ -2,6 +2,93 @@ Cálculo de Pensión de Vejez en Colombia (Régimen de Prima Media)
 
 ## Tabla de contenido
 Creadores del proyecto:Thomas Leon Torres y Andres Felipe Zora
+
+# Tecnologías y arquitectura
+
+## Lenguaje utilizado
+
+El proyecto está desarrollado en **Python**, utilizando una estructura modular para separar la lógica de negocio, la interfaz de usuario y las pruebas.
+
+## Arquitectura
+
+Se utiliza una arquitectura basada en la **separación Model/View (Modelo/Vista)**:
+
+* **Model:** contiene la lógica principal del cálculo pensional y las excepciones del sistema. Se encuentra en `src/model/`, específicamente en `logica_pension.py`.
+* **View:** contiene la interfaz de usuario de la aplicación. Se encuentra en `src/view/console/` y corresponde a una aplicación de consola.
+* **Controller:** la estructura del proyecto contempla el directorio `src/controller/` para la capa de control y coordinación entre las diferentes partes de la aplicación.
+
+Esta separación permite mantener la lógica de negocio independiente de la interfaz de usuario, facilitando el mantenimiento, las pruebas y futuras modificaciones del proyecto.
+
+## Interfaz
+
+La aplicación cuenta con una **interfaz de consola (CLI)**. El usuario introduce los datos necesarios para calcular la pensión, como:
+
+* IBC de los últimos 10 años.
+* IBC de toda la vida laboral.
+* Salario mínimo legal vigente.
+* Semanas cotizadas.
+* Edad.
+* Sexo.
+
+Posteriormente, la aplicación muestra los resultados del cálculo, incluyendo el IBL, la relación con el salario mínimo, la tasa de reemplazo y la pensión estimada.
+
+## Pruebas
+
+Para las pruebas automatizadas se utiliza el framework **`unittest`**, incluido en la biblioteca estándar de Python.
+
+Las pruebas se encuentran en:
+
+```text
+tests/
+└── test_pension.py
+```
+
+Se validan tanto casos normales como casos excepcionales, incluyendo:
+
+* Semanas cotizadas insuficientes.
+* Semanas negativas.
+* IBL igual a cero.
+* IBL negativo.
+* Salario mínimo igual a cero.
+* Edad insuficiente.
+* Edad mínima requerida.
+* Tasa de reemplazo mínima del 55%.
+* Tasa de reemplazo máxima del 80%.
+* Semanas adicionales para incrementar la tasa de reemplazo.
+
+Para ejecutar las pruebas:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+## Control de versiones
+
+El proyecto utiliza **Git** como sistema de control de versiones y **GitHub** como plataforma para alojar y gestionar el repositorio.
+
+Git permite realizar un seguimiento de los cambios realizados en el código y mantener diferentes versiones del proyecto durante su desarrollo.
+
+## Versión de Python requerida
+
+Se requiere **Python 3.x** para ejecutar el proyecto.
+
+Se recomienda utilizar **Python 3.10 o superior**, ya que el proyecto utiliza anotaciones de tipo (`float`, `int`, `-> float`, etc.) y una estructura de paquetes compatible con versiones modernas de Python.
+
+Para comprobar la versión instalada:
+
+```bash
+python --version
+```
+
+Ejemplo:
+
+```text
+Python 3.10.x
+```
+
+
+
+
  
 - [Entradas](#entradas)
 - [Proceso](#proceso)
