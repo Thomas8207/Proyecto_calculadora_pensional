@@ -60,10 +60,7 @@ def cumple_requisitos(semanas_cotizadas: int, edad: int, sexo: str) -> bool:
     return (semanas_cotizadas >= SEMANAS_MINIMAS and((sexo == "F" and edad >= EDAD_MINIMA_MUJER) or
             (sexo == "M" and edad >= EDAD_MINIMA_HOMBRE)))
 
-
-def calcular_pension(ibc_ultimos_10: float, ibc_toda_vida: float, salario_minimo_legal: int, semanas_cotizadas: int, edad: int, sexo: str) -> float:
-    ingreso_base_liquidacion = calcular_ibl(ibc_ultimos_10, ibc_toda_vida)
-
+def validar_datos(ingreso_base_liquidacion: float,salario_minimo_legal: int,semanas_cotizadas: int,edad: int,sexo: str) -> None:
     if semanas_cotizadas < 0:
         raise SemanasNegativas("Las semanas cotizadas no pueden ser negativas")
 
@@ -76,24 +73,27 @@ def calcular_pension(ibc_ultimos_10: float, ibc_toda_vida: float, salario_minimo
     if salario_minimo_legal == 0:
         raise SalarioMinimoLegalVigenteCero("El salario minimo mensual legal vigente no puede ser 0")
 
-    if semanas_cotizadas < SEMANAS_MINIMAS :
+    if semanas_cotizadas < SEMANAS_MINIMAS:
         raise SemanasInsuficientes("semanas_cotizadas menores a las minimas necesarias")
 
-    if (
-        (sexo == "F" and edad < EDAD_MINIMA_MUJER)
-        or
-        (sexo == "M" and edad < EDAD_MINIMA_HOMBRE)):
+    if (sexo == "F" and edad < EDAD_MINIMA_MUJER)or(sexo == "M" and edad < EDAD_MINIMA_HOMBRE):
         raise EdadInsuficiente("La edad que tiene es menor a la requerida para acceder a pension")
 
-    relacion_ibl_smlmv = calcular_relacion_ibl_smlmv(ingreso_base_liquidacion, salario_minimo_legal)
+def calcular_pension(ibc_ultimos_10: float,ibc_toda_vida: float,salario_minimo_legal: int,semanas_cotizadas: int,edad: int,sexo: str) -> float:
+
+    ingreso_base_liquidacion = calcular_ibl(ibc_ultimos_10,ibc_toda_vida)
+
+    validar_datos(ingreso_base_liquidacion,salario_minimo_legal,semanas_cotizadas,edad,sexo)
+
+    relacion_ibl_smlmv = calcular_relacion_ibl_smlmv(ingreso_base_liquidacion,salario_minimo_legal)
+
     tasa_reemplazo_base = calcular_r_base_55(relacion_ibl_smlmv)
+
     semanas_adicionales = semanas_adicionales_test(semanas_cotizadas)
+
     incremento = incremento_porcentual(semanas_adicionales)
-    tasa_reemplazo_total = calcular_r_total(tasa_reemplazo_base, incremento)
 
+    tasa_reemplazo_total = calcular_r_total(tasa_reemplazo_base,incremento)
 
-    if cumple_requisitos(semanas_cotizadas, edad, sexo):
-        pension = round(max(ingreso_base_liquidacion * tasa_reemplazo_total / 100, salario_minimo_legal), 2)
-        return pension
-    else:
-        raise EdadInsuficiente("No cumple los requisitos para acceder a la pension")
+    pension = round( max(ingreso_base_liquidacion * tasa_reemplazo_total / 100,salario_minimo_legal), 2)
+    return pension
