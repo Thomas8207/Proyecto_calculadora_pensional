@@ -86,6 +86,13 @@ Ejemplo:
 Python 3.10.x
 ```
 
+## Dependencias y entorno
+
+El proyecto utiliza principalmente funcionalidades de la **biblioteca estándar de Python**, por lo que no requiere dependencias externas para su ejecución.
+
+Las pruebas automatizadas utilizan `unittest`, incluido en la biblioteca estándar de Python.
+
+Se requiere **Python 3.x** para ejecutar el proyecto.
 
 
 
