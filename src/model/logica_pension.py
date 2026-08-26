@@ -96,4 +96,4 @@ def calcular_pension(ibc_ultimos_10: float, ibc_toda_vida: float, salario_minimo
         pension = round(max(ingreso_base_liquidacion * tasa_reemplazo_total / 100, salario_minimo_legal), 2)
         return pension
     else:
-        raise EdadInsuficiente()
+        raise EdadInsuficiente("No cumple los requisitos para acceder a la pension")
