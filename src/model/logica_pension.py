@@ -15,7 +15,7 @@ class  SemanasInsuficientes(Exception):
 class IblCero(Exception):
     pass
 
-class SalarioMinimoNoValido(Exception):
+class SalarioMinimoLegalVigenteCero(Exception):
     pass
 
 class SemanasNegativas(Exception):
@@ -74,7 +74,7 @@ def calcular_pension(ibc_ultimos_10: float, ibc_toda_vida: float, salario_minimo
         raise IblCero("El ibl no puede ser cero")
 
     if salario_minimo_legal == 0:
-        raise SalarioMinimoNoValido("El salario minimo mensual legal vigente no puede ser 0")
+        raise SalarioMinimoLegalVigenteCero("El salario minimo mensual legal vigente no puede ser 0")
 
     if semanas_cotizadas < SEMANAS_MINIMAS :
         raise SemanasInsuficientes("semanas_cotizadas menores a las minimas necesarias")

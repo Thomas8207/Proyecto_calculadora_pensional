@@ -138,7 +138,7 @@ class TestPension(unittest.TestCase):
         edad = 62
         sexo = "M"
 
-        with self.assertRaises(logica_pension.SalarioMinimoNoValido):
+        with self.assertRaises(logica_pension.SalarioMinimoLegalVigenteCero):
             logica_pension.calcular_pension(ibc_ultimos_10, ibc_toda_vida, smlmv, semanas, edad, sexo)
 
     def test_semanas_negativas(self):
