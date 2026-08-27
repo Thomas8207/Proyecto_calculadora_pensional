@@ -64,7 +64,7 @@ def main():
         print("\nIngrese los siguientes datos:\n")
 
         datos = solicitar_datos()
-        resultado = calcular_resultado(*datos)
+        resultado = calcular_resultado(datos)
         mostrar_resultados(resultado)
 
     except (
