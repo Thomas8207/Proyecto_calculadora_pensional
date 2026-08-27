@@ -18,6 +18,9 @@ class IblCero(Exception):
 class SalarioMinimoLegalVigenteCero(Exception):
     pass
 
+class SalarioMinimoNegativo(Exception):
+    pass
+
 class SemanasNegativas(Exception):
     pass
 
@@ -72,6 +75,9 @@ def validar_datos(ingreso_base_liquidacion: float,salario_minimo_legal: int,sema
 
     if salario_minimo_legal == 0:
         raise SalarioMinimoLegalVigenteCero("El salario minimo mensual legal vigente no puede ser 0")
+
+    if salario_minimo_legal < 0:
+        raise SalarioMinimoNegativo("El salario mínimo legal no puede ser negativo")
 
     if semanas_cotizadas < SEMANAS_MINIMAS:
         raise SemanasInsuficientes("semanas_cotizadas menores a las minimas necesarias")

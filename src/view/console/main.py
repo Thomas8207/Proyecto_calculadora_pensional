@@ -81,6 +81,7 @@ def main():
         logica_pension.IblCero,
         logica_pension.IblNegativo,
         logica_pension.SalarioMinimoLegalVigenteCero,
+        logica_pension.SalarioMinimoNegativo,
         logica_pension.SemanasNegativas,
         logica_pension.EdadInsuficiente
     ) as e:
