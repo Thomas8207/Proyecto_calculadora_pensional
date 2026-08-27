@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 SEMANAS_MINIMAS = 1300
 SEMANAS_POR_INCREMENTO = 50
 INCREMENTO_PORCENTUAL = 1.5
@@ -9,6 +11,16 @@ TASA_REEMPLAZO_MAXIMA = 80
 
 EDAD_MINIMA_MUJER = 57
 EDAD_MINIMA_HOMBRE = 62
+
+@dataclass
+class DatosPension:
+    ibc_ultimos_10: float
+    ibc_toda_vida: float
+    salario_minimo_legal: int
+    semanas_cotizadas: int
+    edad: int
+    sexo: str
+
 class  SemanasInsuficientes(Exception):
     pass
 
@@ -85,21 +97,30 @@ def validar_datos(ingreso_base_liquidacion: float,salario_minimo_legal: int,sema
     if (sexo == "F" and edad < EDAD_MINIMA_MUJER)or(sexo == "M" and edad < EDAD_MINIMA_HOMBRE):
         raise EdadInsuficiente("La edad que tiene es menor a la requerida para acceder a pension")
 
-def calcular_pension(ibc_ultimos_10: float,ibc_toda_vida: float,salario_minimo_legal: int,semanas_cotizadas: int,edad: int,sexo: str) -> float:
+def calcular_pension(datos: DatosPension):
 
-    ingreso_base_liquidacion = calcular_ibl(ibc_ultimos_10,ibc_toda_vida)
+    ingreso_base_liquidacion = calcular_ibl(datos.ibc_ultimos_10,datos.ibc_toda_vida)
 
-    validar_datos(ingreso_base_liquidacion,salario_minimo_legal,semanas_cotizadas,edad,sexo)
+    validar_datos( ingreso_base_liquidacion,datos.salario_minimo_legal,datos.semanas_cotizadas,datos.edad,datos.sexo)
 
-    relacion_ibl_smlmv = calcular_relacion_ibl_smlmv(ingreso_base_liquidacion,salario_minimo_legal)
+    relacion_ibl_smlmv = calcular_relacion_ibl_smlmv(ingreso_base_liquidacion,datos.salario_minimo_legal)
 
     tasa_reemplazo_base = calcular_r_base_55(relacion_ibl_smlmv)
 
-    semanas_adicionales = semanas_adicionales_test(semanas_cotizadas)
+    semanas_adicionales = semanas_adicionales_test(datos.semanas_cotizadas)
 
     incremento = incremento_porcentual(semanas_adicionales)
 
     tasa_reemplazo_total = calcular_r_total(tasa_reemplazo_base,incremento)
 
-    pension = round( max(ingreso_base_liquidacion * tasa_reemplazo_total / 100,salario_minimo_legal), 2)
-    return pension
+    pension = round(max(ingreso_base_liquidacion * tasa_reemplazo_total / 100,datos.salario_minimo_legal),2)
+
+    return {
+        "ibl": ingreso_base_liquidacion,
+        "relacion": relacion_ibl_smlmv,
+        "tasa_base": tasa_reemplazo_base,
+        "semanas_adicionales": semanas_adicionales,
+        "incremento": incremento,
+        "tasa_total": tasa_reemplazo_total,
+        "pension": pension
+    }

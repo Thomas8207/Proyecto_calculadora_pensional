@@ -5,39 +5,30 @@ sys.path.append("src")
 from model import logica_pension
 
 def solicitar_datos():
+
     ibc_ultimos_10 = float(input("IBC de los últimos 10 años: "))
+
     ibc_toda_vida = float(input("IBC de toda la vida laboral: "))
+
     salario_minimo_legal = int(input("Salario mínimo legal vigente: "))
-    semanas = int(input("Semanas cotizadas: "))
+
+    semanas_cotizadas = int(input("Semanas cotizadas: "))
+
     edad = int(input("Edad: "))
+
     sexo = input("Sexo (M/F): ").upper()
 
-    return (ibc_ultimos_10,ibc_toda_vida,salario_minimo_legal,semanas,edad,sexo)
+    return logica_pension.DatosPension(
+        ibc_ultimos_10=ibc_ultimos_10,
+        ibc_toda_vida=ibc_toda_vida,
+        salario_minimo_legal=salario_minimo_legal,
+        semanas_cotizadas=semanas_cotizadas,
+        edad=edad,
+        sexo=sexo
+    )
 
-def calcular_resultado(ibc_ultimos_10,ibc_toda_vida,salario_minimo_legal,semanas,edad,sexo):
-    pension = logica_pension.calcular_pension(ibc_ultimos_10,ibc_toda_vida,salario_minimo_legal,semanas,edad,sexo)
-
-    ingreso_base_liquidacion = logica_pension.calcular_ibl(ibc_ultimos_10,ibc_toda_vida)
-
-    relacion_ibl_smlmv = logica_pension.calcular_relacion_ibl_smlmv(ingreso_base_liquidacion,salario_minimo_legal)
-
-    tasa_reemplazo_base = logica_pension.calcular_r_base_55(relacion_ibl_smlmv)
-
-    semanas_adicionales = logica_pension.semanas_adicionales_test(semanas)
-
-    incremento = logica_pension.incremento_porcentual(semanas_adicionales)
-
-    r_total = logica_pension.calcular_r_total(tasa_reemplazo_base,incremento)
-
-    return {
-        "ibl": ingreso_base_liquidacion,
-        "relacion": relacion_ibl_smlmv,
-        "tasa_base": tasa_reemplazo_base,
-        "semanas_adicionales": semanas_adicionales,
-        "incremento": incremento,
-        "tasa_total": r_total,
-        "pension": pension
-    }
+def calcular_resultado(datos):
+    return logica_pension.calcular_pension(datos)
 
 
 def mostrar_resultados(resultado):
