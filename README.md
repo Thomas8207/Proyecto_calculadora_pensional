@@ -171,7 +171,7 @@ La estructura principal del proyecto es la siguiente:
 ```text
 Proyecto_calculadora_pensional/
 │
-├── src/
+├── src/  -> Sources Root
 │   ├── model/
 │   │   ├── __init__.py
 │   │   └── logica_pension.py
