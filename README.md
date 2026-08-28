@@ -116,6 +116,48 @@ Ubicación:
 
 ```text
 src/controller/
+
+El directorio `src` debe estar marcado como **Sources Root** en el
+IDE de Pycharm, para que Python pueda reconocer correctamente los módulos del
+proyecto y resolver los imports.
+
+Para que Visual Studio Code reconozca correctamente los módulos
+ubicados dentro de `src`, "El directorio src se configura como ruta de búsqueda de módulos 
+de Python en Visual Studio Code."
+
+En `.vscode/settings.json`:
+
+```json
+{
+    "python.analysis.extraPaths": ["./src"]
+}
+Calculadora_Pensional/  (SOLO VISUAL STUDIO CODE)
+│
+├── .vscode/
+│   ├── settings.json
+│   └── launch.json
+│
+├── src/
+│   ├── __init__.py
+│   │
+│   ├── model/
+│   │   ├── __init__.py
+│   │   └── logica_pension.py
+│   │
+│   └── view/
+│       └── console/
+│           └── main.py
+│
+├── tests/
+│   ├── __init__.py
+│   └── test_pension.py
+│
+├── doc/
+│   ├── Entrevista.ogg
+│   └── trabajofinalcasosdeprueba.xlsx
+│
+├── .gitignore
+└── README.md
 ```
 
 La separación de responsabilidades permite mantener la lógica de negocio independiente de la interfaz de usuario, facilitando el mantenimiento, las pruebas y futuras modificaciones del proyecto.
