@@ -144,9 +144,12 @@ Calculadora_Pensional/  (SOLO VISUAL STUDIO CODE)
 │   │   ├── __init__.py
 │   │   └── logica_pension.py
 │   │
-│   └── view/
-│       └── console/
-│           └── main.py
+│   ├── view/
+│   │   └── console/
+│   │       └── main.py
+│   │
+│   └── controller/
+│       ├── __init__.py
 │
 ├── tests/
 │   ├── __init__.py
