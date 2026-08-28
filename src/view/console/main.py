@@ -4,19 +4,31 @@ sys.path.append("src")
 
 from model import logica_pension
 
+
 def solicitar_datos():
+    ibc_ultimos_10 = float(
+        input("IBC de los últimos 10 años: ")
+    )
 
-    ibc_ultimos_10 = float(input("IBC de los últimos 10 años: "))
+    ibc_toda_vida = float(
+        input("IBC de toda la vida laboral: ")
+    )
 
-    ibc_toda_vida = float(input("IBC de toda la vida laboral: "))
+    salario_minimo_legal = int(
+        input("Salario mínimo legal vigente: ")
+    )
 
-    salario_minimo_legal = int(input("Salario mínimo legal vigente: "))
+    semanas_cotizadas = int(
+        input("Semanas cotizadas: ")
+    )
 
-    semanas_cotizadas = int(input("Semanas cotizadas: "))
+    edad = int(
+        input("Edad: ")
+    )
 
-    edad = int(input("Edad: "))
-
-    sexo = input("Sexo (M/F): ").upper()
+    sexo = input(
+        "Sexo (M/F): "
+    ).upper()
 
     return logica_pension.DatosPension(
         ibc_ultimos_10=ibc_ultimos_10,
@@ -27,6 +39,7 @@ def solicitar_datos():
         sexo=sexo
     )
 
+
 def calcular_resultado(datos):
     return logica_pension.calcular_pension(datos)
 
@@ -36,23 +49,46 @@ def mostrar_resultados(resultado):
     print("             RESULTADOS")
     print("=" * 50)
 
-    print(f"IBL calculado: ${resultado['ibl']:,.2f}")
-    print(f"Salarios mínimos (S): {resultado['relacion']:.2f}")
-    print(f"Porcentaje base: {resultado['tasa_base']:.2f}%")
-    print(f"Semanas adicionales: {resultado['semanas_adicionales']}")
-    print(f"Incremento: {resultado['incremento']:.2f}%")
-    print(f"Porcentaje total: {resultado['tasa_total']:.2f}%")
-    print(f"PENSIÓN ESTIMADA: ${resultado['pension']:,.2f}")
+    print(
+        f"IBL calculado: ${resultado.ibl:,.2f}"
+    )
+
+    print(
+        f"Salarios mínimos (S): {resultado.relacion:.2f}"
+    )
+
+    print(
+        f"Porcentaje base: {resultado.tasa_base:.2f}%"
+    )
+
+    print(
+        f"Semanas adicionales: {resultado.semanas_adicionales}"
+    )
+
+    print(
+        f"Incremento: {resultado.incremento:.2f}%"
+    )
+
+    print(
+        f"Porcentaje total: {resultado.tasa_total:.2f}%"
+    )
+
+    print(
+        f"PENSIÓN ESTIMADA: ${resultado.pension:,.2f}"
+    )
 
     print("=" * 50)
 
 
 def manejar_error(error):
-    print(f"\nERROR: {error}")
+    print("\nERROR:")
+    print(error)
 
 
 def manejar_error_valor():
-    print("\nERROR: Debe ingresar valores numéricos válidos.")
+    print(
+        "\nERROR: Debe ingresar valores numéricos válidos."
+    )
 
 
 def main():
@@ -75,8 +111,8 @@ def main():
         logica_pension.SalarioMinimoNegativo,
         logica_pension.SemanasNegativas,
         logica_pension.EdadInsuficiente
-    ) as e:
-        manejar_error(e)
+    ) as error:
+        manejar_error(error)
 
     except ValueError:
         manejar_error_valor()

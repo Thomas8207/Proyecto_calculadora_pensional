@@ -22,12 +22,7 @@ class TestPension(unittest.TestCase):
         pension_esperada = 6_300_000.00
 
         resultado = logica_pension.calcular_pension(datos)
-
-        self.assertAlmostEqual(
-            pension_esperada,
-            resultado["pension"],
-            2
-        )
+        self.assertAlmostEqual(pension_esperada,resultado.pension,2)
 
     def test_normal_2(self):
         datos = logica_pension.DatosPension(
@@ -42,12 +37,7 @@ class TestPension(unittest.TestCase):
         pension_esperada = 2_000_000.00
 
         resultado = logica_pension.calcular_pension(datos)
-
-        self.assertAlmostEqual(
-            pension_esperada,
-            resultado["pension"],
-            2
-        )
+        self.assertAlmostEqual(pension_esperada,resultado.pension,2)
 
     def test_normal_3(self):
         datos = logica_pension.DatosPension(
@@ -62,12 +52,7 @@ class TestPension(unittest.TestCase):
         pension_esperada = 2_750_475.00
 
         resultado = logica_pension.calcular_pension(datos)
-
-        self.assertAlmostEqual(
-            pension_esperada,
-            resultado["pension"],
-            2
-        )
+        self.assertAlmostEqual( pension_esperada,resultado.pension,2)
 
     def test_normal_4(self):
         datos = logica_pension.DatosPension(
@@ -82,12 +67,7 @@ class TestPension(unittest.TestCase):
         pension_esperada = 11_949_600.00
 
         resultado = logica_pension.calcular_pension(datos)
-
-        self.assertAlmostEqual(
-            pension_esperada,
-            resultado["pension"],
-            2
-        )
+        self.assertAlmostEqual(pension_esperada,resultado.pension,2)
 
     def test_normal_5(self):
         datos = logica_pension.DatosPension(
@@ -102,12 +82,7 @@ class TestPension(unittest.TestCase):
         pension_esperada = 2_080_000.00
 
         resultado = logica_pension.calcular_pension(datos)
-
-        self.assertAlmostEqual(
-            pension_esperada,
-            resultado["pension"],
-            2
-        )
+        self.assertAlmostEqual( pension_esperada,resultado.pension,2)
 
     def test_normal_6(self):
         datos = logica_pension.DatosPension(
@@ -123,11 +98,7 @@ class TestPension(unittest.TestCase):
 
         resultado = logica_pension.calcular_pension(datos)
 
-        self.assertAlmostEqual(
-            pension_esperada,
-            resultado["pension"],
-            2
-        )
+        self.assertAlmostEqual(pension_esperada,resultado.pension,2)
 
     def test_semanas_insuficientes(self):
         datos = logica_pension.DatosPension(
@@ -165,9 +136,7 @@ class TestPension(unittest.TestCase):
             sexo="M"
         )
 
-        with self.assertRaises(
-            logica_pension.SalarioMinimoLegalVigenteCero
-        ):
+        with self.assertRaises(logica_pension.SalarioMinimoLegalVigenteCero):
             logica_pension.calcular_pension(datos)
 
     def test_smlmv_negativo(self):
@@ -180,9 +149,7 @@ class TestPension(unittest.TestCase):
             sexo="M"
         )
 
-        with self.assertRaises(
-            logica_pension.SalarioMinimoNegativo
-        ):
+        with self.assertRaises(logica_pension.SalarioMinimoNegativo):
             logica_pension.calcular_pension(datos)
 
     def test_semanas_negativas(self):
@@ -241,7 +208,7 @@ class TestPension(unittest.TestCase):
         pension_esperada = 2_000_000.00
 
         resultado = logica_pension.calcular_pension(datos)
-        self.assertAlmostEqual(pension_esperada,resultado["pension"],2)
+        self.assertAlmostEqual(pension_esperada,resultado.pension,2)
 
     def test_excepcional_edad_limite_hombre(self):
         datos = logica_pension.DatosPension(
@@ -256,7 +223,7 @@ class TestPension(unittest.TestCase):
         pension_esperada = 2_000_000.00
 
         resultado = logica_pension.calcular_pension(datos)
-        self.assertAlmostEqual(pension_esperada,resultado["pension"],2)
+        self.assertAlmostEqual(pension_esperada,resultado.pension,2)
 
     def test_excepcional_r_base_bajo_piso_55(self):
         datos = logica_pension.DatosPension(
@@ -271,7 +238,8 @@ class TestPension(unittest.TestCase):
         pension_esperada = 18_646_875.00
 
         resultado = logica_pension.calcular_pension(datos)
-        self.assertAlmostEqual(pension_esperada,resultado["pension"],2)
+
+        self.assertAlmostEqual(pension_esperada,resultado.pension,2 )
 
     def test_excepcional_r_total_llega_tope_80(self):
         datos = logica_pension.DatosPension(
@@ -286,7 +254,8 @@ class TestPension(unittest.TestCase):
         pension_esperada = 2_000_000.00
 
         resultado = logica_pension.calcular_pension(datos)
-        self.assertAlmostEqual(pension_esperada,resultado["pension"],2)
+
+        self.assertAlmostEqual( pension_esperada,resultado.pension,2 )
 
     def test_excepcional_49_semanas_no_alcanza_incremento(self):
         datos = logica_pension.DatosPension(
@@ -301,7 +270,8 @@ class TestPension(unittest.TestCase):
         pension_esperada = 2_000_000.00
 
         resultado = logica_pension.calcular_pension(datos)
-        self.assertAlmostEqual(pension_esperada,resultado["pension"],2)
+
+        self.assertAlmostEqual(pension_esperada,resultado.pension, 2)
 
 
 if __name__ == "__main__":
