@@ -1,3 +1,29 @@
+# Python
 __pycache__/
 *.pyc
-.venv/
+venv/
+*.egg-info/
+
+# PyInstaller (compilación del .exe de Windows)
+build/
+dist/
+*.spec.bak
+
+# Buildozer (compilación del .apk de Android)
+.buildozer/
+bin/
+
+# Entornos e IDE
+.idea/
+.vscode/
+
+# Kivy
+*.log
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+dist/
+build/
