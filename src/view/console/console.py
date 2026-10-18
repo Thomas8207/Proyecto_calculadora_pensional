@@ -2,10 +2,14 @@
 
 Uso:
     python src/view/console/console.py
+
+Ofrece un menú para calcular la pensión y, además, guardar cálculos en
+la base de datos y consultar el historial por cédula.
 """
 
 import sys
 import os
+from typing import Callable
 
 # Permite ejecutar el archivo directamente sin configurar Sources Root.
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -17,6 +21,20 @@ from controller.pension_controller import (
     MENSAJE_ENTRADA_INVALIDA,
 )
 from model.logica_pension import DatosPension, ErrorCalculoPension, ResultadoPension
+from view.console.historial_console import (
+    ERRORES_HISTORIAL,
+    HistorialConsola,
+    solicitar_persona,
+)
+
+MENU = """
+Seleccione una opción:
+  1. Calcular pensión
+  2. Calcular y guardar en la base de datos
+  3. Buscar historial por cédula
+  4. Crear tablas (primera vez)
+  0. Salir
+"""
 
 
 def solicitar_numero(mensaje: str) -> float:
@@ -105,34 +123,83 @@ def mostrar_resultados(
     print("=" * 50)
 
 
-def main() -> None:
-    """Punto de entrada de la CLI: orquesta todo el flujo de la app.
+# ---------------------------------------------------------------------------
+# Opciones del menú (cada una hace una sola cosa).
+# ---------------------------------------------------------------------------
 
-    Flujo: mostrar encabezado -> pedir datos -> calcular -> mostrar
-    resultado. Cualquier error (de formato, de negocio o inesperado)
-    se captura aquí para que el programa siempre termine mostrando un
-    mensaje claro en vez de un traceback.
+
+def calcular_pension(controlador: CalculadoraPensionController) -> None:
+    """Opción 1: pide los datos, calcula y muestra el resultado."""
+    datos = solicitar_datos(controlador=controlador)
+    resultado = controlador.calcular(datos=datos)
+    mostrar_resultados(controlador=controlador, resultado=resultado)
+
+
+def calcular_y_guardar(
+    controlador: CalculadoraPensionController, historial: HistorialConsola
+) -> None:
+    """Opción 2: pide la persona y los datos, y guarda el cálculo."""
+    cedula, nombre = solicitar_persona()
+    datos = solicitar_datos(controlador=controlador)
+    historial.guardar_calculo(cedula=cedula, nombre=nombre, datos=datos)
+
+
+def ejecutar_accion(
+    accion: Callable[[], None], controlador: CalculadoraPensionController
+) -> None:
+    """Ejecuta una opción del menú y convierte cualquier error en un mensaje.
+
+    Errores de formato, de negocio, de base de datos o inesperados se
+    capturan aquí para que el programa siempre muestre un mensaje claro
+    en vez de un traceback.
     """
-    controlador = CalculadoraPensionController()
-
-    print("=" * 50)
-    print("       CALCULADORA PENSIONAL")
-    print("=" * 50)
-
     try:
-        datos = solicitar_datos(controlador=controlador)
-        resultado = controlador.calcular(datos=datos)
-        mostrar_resultados(controlador=controlador, resultado=resultado)
+        accion()
     except ValueError:
         print("\nERROR: " + MENSAJE_ENTRADA_INVALIDA)
     except ErrorCalculoPension as error:
         # Errores de negocio ya conocidos: se traducen a un mensaje amigable.
         print("\nERROR: " + controlador.mensaje_de_error(error))
+    except ERRORES_HISTORIAL as error:
+        # Cédula/nombre inválidos, falta de configuración o fallas de la base de datos.
+        print("\nERROR: " + str(error))
     except Exception as error:
         # Último recurso de resiliencia: cualquier falla no prevista no debe
         # tumbar la consola (requisito de la actividad), pero sí queda
         # reportada de forma clara al usuario.
         print("\nERROR INESPERADO: " + controlador.mensaje_de_error(error))
+
+
+def main() -> None:
+    """Punto de entrada de la CLI: muestra el menú hasta que se elija salir."""
+    controlador = CalculadoraPensionController()
+    historial = HistorialConsola()
+
+    acciones = {
+        "1": lambda: calcular_pension(controlador=controlador),
+        "2": lambda: calcular_y_guardar(controlador=controlador, historial=historial),
+        "3": historial.buscar_por_cedula,
+        "4": historial.crear_tablas,
+    }
+
+    print("=" * 50)
+    print("       CALCULADORA PENSIONAL")
+    print("=" * 50)
+
+    while True:
+        print(MENU)
+        opcion = input("Opción: ").strip()
+
+        if opcion == "0":
+            print("\nHasta pronto.")
+            return
+
+        accion = acciones.get(opcion)
+        if accion is None:
+            print("  >> Opción no válida: elija un número del menú.")
+            continue
+
+        ejecutar_accion(accion=accion, controlador=controlador)
 
 
 if __name__ == "__main__":
