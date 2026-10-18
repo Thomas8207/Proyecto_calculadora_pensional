@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS calculopension;
+DROP TABLE IF EXISTS persona;
