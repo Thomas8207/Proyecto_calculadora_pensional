@@ -9,13 +9,15 @@ funcione aunque la base de datos no esté disponible.
 
 from typing import Optional, Tuple
 
+
+import os
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 from controller.historial_controller import ErrorHistorial, HistorialPensionController
 from model.conexion import ConfiguracionFaltante, ErrorConexion, obtener_conexion
 from model.logica_pension import DatosPension
 
-# Errores propios del historial y la conexión, para que el menú los capture.
 ERRORES_HISTORIAL = (ConfiguracionFaltante, ErrorConexion, ErrorHistorial)
-
 
 def solicitar_cedula() -> str:
     """Solicita la cédula (solo dígitos); reintenta hasta obtenerla."""
@@ -25,7 +27,6 @@ def solicitar_cedula() -> str:
             return cedula
         print("  >> Entrada no válida: ingrese solo dígitos, sin puntos ni espacios.")
 
-
 def solicitar_nombre() -> str:
     """Solicita el nombre; reintenta si se deja vacío."""
     while True:
@@ -34,12 +35,10 @@ def solicitar_nombre() -> str:
             return nombre
         print("  >> El nombre no puede estar vacío. Intente de nuevo.")
 
-
 def solicitar_persona() -> Tuple[str, str]:
     """Pide la cédula y el nombre de la persona a la que se guarda el cálculo."""
     print("\nDatos de la persona:\n")
     return solicitar_cedula(), solicitar_nombre()
-
 
 class HistorialConsola:
     """Opciones de consola que usan la base de datos."""
