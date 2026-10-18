@@ -10,12 +10,16 @@ import psycopg2
 
 from controller.pension_controller import CalculadoraPensionController
 from model.logica_pension import DatosPension
-from model.modelos_db import (
-    SQL_BORRAR_TABLAS,
-    SQL_CREAR_TABLAS,
-    CalculoPension,
-)
+from pathlib import Path
 
+from model.calculo_pension import CalculoPension
+
+CARPETA_SQL = Path(__file__).resolve().parents[2] / "sql"
+
+
+def _leer_sql(nombre_archivo: str) -> str:
+    """Lee un script de la carpeta sql/ del proyecto."""
+    return (CARPETA_SQL / nombre_archivo).read_text(encoding="utf-8")
 
 class ErrorHistorial(Exception):
     """Excepción base de los errores del historial."""
@@ -74,11 +78,11 @@ class HistorialPensionController:
     # --- Crear y borrar tablas ------------------------------------------
     def crear_tablas(self) -> None:
         """CREATE TABLE: crea las tablas si no existen."""
-        self._ejecutar(SQL_CREAR_TABLAS)
+        self._ejecutar(_leer_sql("crear_tablas.sql"))
 
     def borrar_tablas(self) -> None:
         """DROP TABLE: borra las tablas y TODOS sus datos."""
-        self._ejecutar(SQL_BORRAR_TABLAS)
+        self._ejecutar(_leer_sql("borrar_tablas.sql"))
 
     # --- Insertar -------------------------------------------------------
     def calcular_y_guardar(

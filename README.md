@@ -6,6 +6,10 @@ Kivy)** que comparten la misma lógica de negocio.
 
 ## Creadores del proyecto
 
+- **Thomas Leon Torres**
+- **Andres Felipe Zora**
+
+## Creadores del Gui
 - **Samuel Alejandro Marroquín Garcés**
 - **Juan Pablo Gaviria Franco**
 - **Repositorio (fork):** https://github.com/SamuelMarroquin2009-12/Proyecto_calculadora_pensional
@@ -383,3 +387,51 @@ Proyecto versionado con Git y alojado en GitHub (fork del proyecto
 recibido). La GUI se agregó en una rama de trabajo separada y luego se
 integró a `main`, manteniendo la consola y las pruebas unitarias intactas
 en todo momento.
+
+## Base de datos (PostgreSQL en Render)
+
+El historial de cálculos se guarda en PostgreSQL, en las tablas `persona`
+y `calculopension` (una persona puede tener muchos cálculos).
+
+### 1. Crear la base de datos
+
+En Render, crear una base PostgreSQL y copiar sus datos de conexión
+(host, puerto, nombre de la base, usuario y contraseña).
+
+### 2. Configurar la conexión
+
+1. Copiar `src/secret_config_sample.py` como `src/secret_config.py`.
+2. Reemplazar los valores de ejemplo por los datos de su base.
+3. **No subir `secret_config.py` al repositorio**: está en `.gitignore`.
+
+### 3. Instalar dependencias y ejecutar
+
+```
+pip install -r requirements.txt
+python src/view/console/console.py
+```
+
+### 4. Crear las tablas
+
+La primera vez, elegir la opción **4. Crear tablas** del menú.
+(También se puede ejecutar `sql/crear_tablas.sql` con `psql`.
+Para borrarlas: `sql/borrar_tablas.sql`.)
+
+### 5. Insertar y buscar datos
+
+- Opción **2. Calcular y guardar en la base de datos**: pide cédula,
+  nombre y los datos de la pensión, y guarda el cálculo.
+- Opción **3. Buscar historial por cédula**: muestra los cálculos
+  guardados de esa persona, del más reciente al más antiguo.
+
+### 6. Ejecutar las pruebas
+
+Con `secret_config.py` configurado:
+
+```
+python -m unittest tests.test_historial_controller -v
+```
+
+Las pruebas trabajan en un esquema temporal llamado `pruebas`, por lo
+que no modifican las tablas reales. Si la base de datos no está
+disponible, se omiten (`skipped`).

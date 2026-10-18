@@ -1,5 +1,0 @@
-CREATE TABLE  persona (
-    id SERIAL PRIMARY KEY,
-    cedula VARCHAR(20) NOT NULL UNIQUE,
-    nombre VARCHAR(100) NOT NULL
-);

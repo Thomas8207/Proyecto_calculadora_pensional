@@ -1,7 +1,7 @@
 """Interfaz de consola (CLI) de la calculadora pensional.
 
 Uso:
-    python src/view/console/main.py
+    python src/view/console/console.py
 """
 
 import sys

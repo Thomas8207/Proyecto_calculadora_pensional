@@ -1,10 +1,10 @@
-CREATE TABLE persona (
+CREATE TABLE IF NOT EXISTS persona (
     id SERIAL PRIMARY KEY,
     cedula VARCHAR(20) NOT NULL UNIQUE,
     nombre VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE calculopension (
+CREATE TABLE IF NOT EXISTS calculopension (
     id SERIAL PRIMARY KEY,
     persona_id INTEGER NOT NULL REFERENCES persona (id) ON DELETE CASCADE,
     ibc_ultimos_10 DOUBLE PRECISION NOT NULL,
@@ -16,5 +16,5 @@ CREATE TABLE calculopension (
     ibl DOUBLE PRECISION NOT NULL,
     tasa_total DOUBLE PRECISION NOT NULL,
     pension DOUBLE PRECISION NOT NULL,
-    fecha TIMESTAMP NOT NULL
+    fecha TIMESTAMP NOT NULL DEFAULT NOW().
 );

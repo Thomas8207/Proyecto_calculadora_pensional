@@ -17,7 +17,7 @@ import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
 
-from view.gui.main import CalculadoraPensionApp
+from view.gui.Gui import CalculadoraPensionApp
 
 if __name__ == "__main__":
     CalculadoraPensionApp().run()
