@@ -77,3 +77,12 @@ class HistorialConsola:
         """Crea las tablas si no existen (necesario la primera vez)."""
         self._obtener_controlador().crear_tablas()
         print("\nTablas persona y calculopension listas.")
+
+    def borrar_tablas(self) -> None:
+        """Borra las tablas y todos sus datos, pidiendo confirmación."""
+        confirmacion = input("Esto borra TODAS las tablas y sus datos. Escriba 'SI' para continuar: ")
+        if confirmacion.strip().upper() != "SI":
+            print("\nOperación cancelada.")
+            return
+        self._obtener_controlador().borrar_tablas()
+        print("\nTablas borradas.")

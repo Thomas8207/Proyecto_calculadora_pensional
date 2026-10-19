@@ -33,6 +33,7 @@ Seleccione una opción:
   2. Calcular y guardar en la base de datos
   3. Buscar historial por cédula
   4. Crear tablas (primera vez)
+  5. Borrar tablas
   0. Salir
 """
 
@@ -123,11 +124,6 @@ def mostrar_resultados(
     print("=" * 50)
 
 
-# ---------------------------------------------------------------------------
-# Opciones del menú (cada una hace una sola cosa).
-# ---------------------------------------------------------------------------
-
-
 def calcular_pension(controlador: CalculadoraPensionController) -> None:
     """Opción 1: pide los datos, calcula y muestra el resultado."""
     datos = solicitar_datos(controlador=controlador)
@@ -171,7 +167,6 @@ def ejecutar_accion(
 
 
 def main() -> None:
-    """Punto de entrada de la CLI: muestra el menú hasta que se elija salir."""
     controlador = CalculadoraPensionController()
     historial = HistorialConsola()
 
@@ -180,6 +175,7 @@ def main() -> None:
         "2": lambda: calcular_y_guardar(controlador=controlador, historial=historial),
         "3": historial.buscar_por_cedula,
         "4": historial.crear_tablas,
+        "5": historial.borrar_tablas,
     }
 
     print("=" * 50)

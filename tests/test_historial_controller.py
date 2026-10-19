@@ -160,6 +160,3 @@ class TestBuscar(BaseHistorial):
         self.assertIn("Luis", texto)
         self.assertIn("Pensión", texto)
 
-
-if __name__ == "__main__":
-    unittest.main()
