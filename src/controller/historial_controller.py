@@ -1,49 +1,67 @@
 """Controlador del historial: crear/borrar tablas, insertar y consultar.
 
-Recibe una conexión psycopg2 y ejecuta el SQL. Reutiliza
-CalculadoraPensionController para el cálculo de negocio.
+Es la única capa que habla con la base de datos: ejecuta el SQL y maneja
+la conexión (se abre la primera vez que se necesita y se reabre si se
+cerró). Las vistas y las pruebas solo llaman a sus métodos: no conocen la
+conexión ni escriben SQL. Reutiliza CalculadoraPensionController para el
+cálculo de negocio.
 """
 
-from typing import List
+from contextlib import contextmanager
+from functools import partial
+from pathlib import Path
+from typing import Callable, Iterator, List, Optional
 
 import psycopg2
+from psycopg2.extensions import connection as Conexion
+from psycopg2.extensions import cursor as Cursor
 
 from controller.pension_controller import CalculadoraPensionController
-from model.logica_pension import DatosPension
-from pathlib import Path
-
 from model.calculo_pension import CalculoPension
+from model.conexion import ConfiguracionFaltante, ErrorConexion, obtener_conexion
+from model.logica_pension import DatosPension
 
+# Los scripts SQL viven en la carpeta sql/ de la raíz del proyecto.
 CARPETA_SQL = Path(__file__).resolve().parents[2] / "sql"
 
+LONGITUD_MAXIMA_CEDULA = 20   # Debe coincidir con VARCHAR(20) de persona.cedula.
+LONGITUD_MAXIMA_NOMBRE = 100  # Debe coincidir con VARCHAR(100) de persona.nombre.
 
-def _leer_sql(nombre_archivo: str) -> str:
-    """Lee un script de la carpeta sql/ del proyecto."""
-    return (CARPETA_SQL / nombre_archivo).read_text(encoding="utf-8")
 
 class ErrorHistorial(Exception):
     """Excepción base de los errores del historial."""
 
 
 class CedulaInvalida(ErrorHistorial):
-    """La cédula está vacía o no es numérica."""
+    """La cédula está vacía, no es numérica o es demasiado larga."""
 
-    def __init__(self, cedula: str = None):
+    def __init__(self, cedula: Optional[str] = None):
         super().__init__(
             f"La cédula no es válida (recibido: '{cedula}'). "
-            "Solución: ingrese solo dígitos, sin puntos ni espacios."
+            f"Solución: ingrese solo dígitos (máximo {LONGITUD_MAXIMA_CEDULA}), "
+            "sin puntos ni espacios."
         )
 
 
 class NombreInvalido(ErrorHistorial):
-    """El nombre está vacío."""
+    """El nombre está vacío o es demasiado largo."""
 
     def __init__(self):
-        super().__init__("El nombre no puede estar vacío. Solución: ingréselo.")
+        super().__init__(
+            "El nombre no es válido: no puede estar vacío ni superar "
+            f"{LONGITUD_MAXIMA_NOMBRE} caracteres. Solución: ingréselo de nuevo."
+        )
+
+
+class ErrorConexionHistorial(ErrorHistorial):
+    """No fue posible abrir la conexión (falta configuración o falla de red)."""
+
+    def __init__(self, causa: Exception):
+        super().__init__(str(causa))
 
 
 class ErrorBaseDeDatos(ErrorHistorial):
-    """Falla de la base de datos (tablas inexistentes, conexión, etc.)."""
+    """Falla de la base de datos (tablas inexistentes, SQL inválido, etc.)."""
 
     def __init__(self, causa: Exception):
         super().__init__(
@@ -52,36 +70,72 @@ class ErrorBaseDeDatos(ErrorHistorial):
         )
 
 
+def _leer_sql(nombre_archivo: str) -> str:
+    """Lee un script de la carpeta sql/ del proyecto."""
+    return (CARPETA_SQL / nombre_archivo).read_text(encoding="utf-8")
+
+
 class HistorialPensionController:
     """Casos de uso de persistencia del historial de cálculos."""
 
-    def __init__(self, conexion, calculadora: CalculadoraPensionController = None):
-        self.conexion = conexion
+    def __init__(
+        self,
+        fabrica_conexion: Callable[[], Conexion] = obtener_conexion,
+        calculadora: Optional[CalculadoraPensionController] = None,
+    ):
+        self._fabrica_conexion = fabrica_conexion
+        self._conexion: Optional[Conexion] = None
         self.calculadora = calculadora or CalculadoraPensionController()
 
-    def _ejecutar(self, sentencia: str, parametros: tuple = None) -> list:
-        """Ejecuta una sentencia con commit/rollback y retorna sus filas.
+    @classmethod
+    def en_esquema(cls, esquema: str) -> "HistorialPensionController":
+        """Controlador que trabaja en un esquema aparte (para las pruebas)."""
+        return cls(fabrica_conexion=partial(obtener_conexion, esquema=esquema))
 
-        Si algo falla se hace rollback (psycopg2 deja la transacción
-        inutilizable si no) y se lanza ErrorBaseDeDatos.
-        """
+    # --- Conexión ---------------------------------------------------------
+    def _conexion_activa(self) -> Conexion:
+        """Abre la conexión la primera vez (o si se cerró) y la reutiliza."""
+        if self._conexion is None or self._conexion.closed:
+            try:
+                self._conexion = self._fabrica_conexion()
+            except (ConfiguracionFaltante, ErrorConexion) as error:
+                raise ErrorConexionHistorial(error) from error
+        return self._conexion
+
+    def cerrar(self) -> None:
+        """Cierra la conexión si está abierta."""
+        if self._conexion is not None and not self._conexion.closed:
+            self._conexion.close()
+        self._conexion = None
+
+    @contextmanager
+    def _transaccion(self) -> Iterator[Cursor]:
+        """Entrega un cursor; hace commit al terminar o rollback si algo falla."""
+        conexion = self._conexion_activa()
         try:
-            with self.conexion.cursor() as cursor:
-                cursor.execute(sentencia, parametros)
-                filas = cursor.fetchall() if cursor.description else []
-            self.conexion.commit()
-            return filas
+            with conexion.cursor() as cursor:
+                yield cursor
+            conexion.commit()
         except psycopg2.Error as error:
-            self.conexion.rollback()
+            conexion.rollback()
             raise ErrorBaseDeDatos(error) from error
+        except Exception:
+            conexion.rollback()
+            raise
+
+    def _ejecutar(self, sentencia: str, parametros: Optional[tuple] = None) -> List[tuple]:
+        """Ejecuta una sentencia dentro de una transacción y retorna sus filas."""
+        with self._transaccion() as cursor:
+            cursor.execute(sentencia, parametros)
+            return cursor.fetchall() if cursor.description else []
 
     # --- Crear y borrar tablas ------------------------------------------
     def crear_tablas(self) -> None:
-        """CREATE TABLE: crea las tablas si no existen."""
+        """CREATE TABLE: ejecuta sql/crear_tablas.sql (no borra datos existentes)."""
         self._ejecutar(_leer_sql("crear_tablas.sql"))
 
     def borrar_tablas(self) -> None:
-        """DROP TABLE: borra las tablas y TODOS sus datos."""
+        """DROP TABLE: ejecuta sql/borrar_tablas.sql (borra TODOS los datos)."""
         self._ejecutar(_leer_sql("borrar_tablas.sql"))
 
     # --- Insertar -------------------------------------------------------
@@ -92,50 +146,45 @@ class HistorialPensionController:
 
         Si los datos violan una regla de negocio, ErrorCalculoPension se
         propaga y NO se guarda nada. Si la persona ya existe (misma
-        cédula) se reutiliza en vez de duplicarla.
+        cédula) se reutiliza y se conserva su nombre original.
         """
         cedula = self._validar_cedula(cedula)
         nombre = self._validar_nombre(nombre)
         resultado = self.calculadora.calcular(datos)
 
-        try:
-            with self.conexion.cursor() as cursor:
-                cursor.execute(
-                    """
-                    INSERT INTO persona (cedula, nombre) VALUES (%s, %s)
-                    ON CONFLICT (cedula) DO UPDATE SET cedula = EXCLUDED.cedula
-                    RETURNING id
-                    """,
-                    (cedula, nombre),
-                )
-                persona_id = cursor.fetchone()[0]
-                cursor.execute(
-                    """
-                    INSERT INTO calculopension (
-                        persona_id, ibc_ultimos_10, ibc_toda_vida,
-                        salario_minimo_legal, semanas_cotizadas, edad, sexo,
-                        ibl, tasa_total, pension
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                    RETURNING id
-                    """,
-                    (
-                        persona_id,
-                        datos.ibc_ultimos_10,
-                        datos.ibc_toda_vida,
-                        datos.salario_minimo_legal,
-                        datos.semanas_cotizadas,
-                        datos.edad,
-                        datos.sexo,
-                        resultado.ibl,
-                        resultado.tasa_total,
-                        resultado.pension,
-                    ),
-                )
-                calculo_id = cursor.fetchone()[0]
-            self.conexion.commit()
-        except psycopg2.Error as error:
-            self.conexion.rollback()
-            raise ErrorBaseDeDatos(error) from error
+        with self._transaccion() as cursor:
+            cursor.execute(
+                """
+                INSERT INTO persona (cedula, nombre) VALUES (%s, %s)
+                ON CONFLICT (cedula) DO UPDATE SET cedula = EXCLUDED.cedula
+                RETURNING id
+                """,
+                (cedula, nombre),
+            )
+            persona_id = cursor.fetchone()[0]
+            cursor.execute(
+                """
+                INSERT INTO calculopension (
+                    persona_id, ibc_ultimos_10, ibc_toda_vida,
+                    salario_minimo_legal, semanas_cotizadas, edad, sexo,
+                    ibl, tasa_total, pension
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id
+                """,
+                (
+                    persona_id,
+                    datos.ibc_ultimos_10,
+                    datos.ibc_toda_vida,
+                    datos.salario_minimo_legal,
+                    datos.semanas_cotizadas,
+                    datos.edad,
+                    datos.sexo,
+                    resultado.ibl,
+                    resultado.tasa_total,
+                    resultado.pension,
+                ),
+            )
+            calculo_id = cursor.fetchone()[0]
 
         return self._buscar_por_id(calculo_id)
 
@@ -163,28 +212,18 @@ class HistorialPensionController:
         )
         return CalculoPension.desde_fila(filas[0])
 
-    # --- Presentación y validación ---------------------------------------
+    # --- Validación de los datos de la persona ---------------------------
     @staticmethod
-    def formatear_calculo(calculo: CalculoPension) -> str:
-        """Una línea de texto legible para mostrar un cálculo guardado."""
-        return (
-            f"#{calculo.id} | {calculo.fecha:%Y-%m-%d %H:%M} | "
-            f"{calculo.persona.nombre} (CC {calculo.persona.cedula}) | "
-            f"{calculo.semanas_cotizadas} sem, {calculo.edad} años ({calculo.sexo}) | "
-            f"IBL ${calculo.ibl:,.2f} | Tasa {calculo.tasa_total:.1f}% | "
-            f"Pensión ${calculo.pension:,.2f}"
-        )
-
-    @staticmethod
-    def _validar_cedula(cedula: str) -> str:
+    def _validar_cedula(cedula: Optional[str]) -> str:
         limpia = (cedula or "").strip()
-        if not limpia.isdigit():
+        es_numerica = limpia.isascii() and limpia.isdigit()
+        if not es_numerica or len(limpia) > LONGITUD_MAXIMA_CEDULA:
             raise CedulaInvalida(cedula=cedula)
         return limpia
 
     @staticmethod
-    def _validar_nombre(nombre: str) -> str:
+    def _validar_nombre(nombre: Optional[str]) -> str:
         limpio = (nombre or "").strip()
-        if not limpio:
+        if not limpio or len(limpio) > LONGITUD_MAXIMA_NOMBRE:
             raise NombreInvalido()
         return limpio
