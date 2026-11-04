@@ -47,10 +47,14 @@ class ErrorConexion(Exception):
 
 def _cargar_configuracion() -> Dict[str, object]:
     """Lee secret_config.py y verifica que defina todos los datos."""
+    configuracion = None
     try:
-        configuracion = importlib.import_module("secret_config")
-    except ImportError as error:
-        raise ConfiguracionFaltante("no se encontró src/secret_config.py.") from error
+        configuracion = importlib.import_module("src.secret_config")
+    except ImportError:
+        try:
+            configuracion = importlib.import_module("secret_config")
+        except ImportError as error:
+            raise ConfiguracionFaltante("no se encontró src/secret_config.py.") from error
 
     faltantes = [n for n in NOMBRES_CONFIGURACION if not hasattr(configuracion, n)]
     if faltantes:
