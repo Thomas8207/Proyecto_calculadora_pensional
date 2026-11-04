@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-from typing import List
-=======
 """Controlador del historial: crear/borrar tablas, insertar y consultar.
 
 Es la única capa que habla con la base de datos: ejecuta el SQL y maneja
@@ -14,7 +11,6 @@ from contextlib import contextmanager
 from functools import partial
 from pathlib import Path
 from typing import Callable, Iterator, List, Optional
->>>>>>> 302322a6572c5e3054445e694b2018a32b6086a7
 
 import psycopg2
 from psycopg2.extensions import connection as Conexion
@@ -144,15 +140,14 @@ class HistorialPensionController:
     def calcular_y_guardar(
         self, cedula: str, nombre: str, datos: DatosPension
     ) -> CalculoPension:
-<<<<<<< HEAD
-=======
+
         """Calcula la pensión y guarda el cálculo (INSERT INTO).
 
         Si los datos violan una regla de negocio, ErrorCalculoPension se
         propaga y NO se guarda nada. Si la persona ya existe (misma
         cédula) se reutiliza y se conserva su nombre original.
         """
->>>>>>> 302322a6572c5e3054445e694b2018a32b6086a7
+
         cedula = self._validar_cedula(cedula)
         nombre = self._validar_nombre(nombre)
         resultado = self.calculadora.calcular(datos)
@@ -211,10 +206,6 @@ class HistorialPensionController:
         )
         return CalculoPension.desde_fila(filas[0])
 
-<<<<<<< HEAD
-=======
-    # --- Validación de los datos de la persona ---------------------------
->>>>>>> 302322a6572c5e3054445e694b2018a32b6086a7
     @staticmethod
     def _validar_cedula(cedula: Optional[str]) -> str:
         limpia = (cedula or "").strip()

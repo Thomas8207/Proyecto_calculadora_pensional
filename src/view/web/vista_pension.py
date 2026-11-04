@@ -1,49 +1,72 @@
-from flask import Blueprint, render_template, request, url_for
-from controller.pension_controller import PensionController
-from controller.historial_controller import HistorialController
+import os
+from flask import Blueprint, render_template, request
 
-# Definición del Blueprint con el nombre 'blueprint' como lo usa tu profesor
+from src.controller.pension_controller import CalculadoraPensionController
+from src.controller.historial_controller import HistorialPensionController
+
 blueprint = Blueprint('pension', __name__)
 
-controlador_pension = PensionController()
-controlador_historial = HistorialController()
+controlador_pension = CalculadoraPensionController()
+controlador_historial = HistorialPensionController()
 
-# Ruta para el menú principal
+
 @blueprint.route('/')
 def index():
+    """Menú principal."""
     return render_template('menu_principal_calculadora.html')
 
-# Ruta para crear las tablas en la BD vacía
-@blueprint.route('/crear_tablas')
-def crear_tablas():
-    controlador_historial.crear_tablas()
-    return render_template('menu_principal_calculadora.html', mensaje="Tablas creadas con éxito.")
 
-# Ruta para calcular e insertar la pensión
+@blueprint.route('/crear_tablas', methods=['GET', 'POST'])
+def crear_tablas():
+    """Inicializa las tablas en la base de datos."""
+    try:
+        controlador_historial.crear_tablas()
+        mensaje = "Tablas creadas con éxito en la base de datos."
+    except Exception as e:
+        mensaje = f"Error al crear las tablas: {str(e)}"
+
+    return render_template('menu_principal_calculadora.html', mensaje=mensaje)
+
+
 @blueprint.route('/insertar', methods=['GET', 'POST'])
 def insertar():
+    """Calcula la pensión y guarda el registro."""
     if request.method == 'POST':
-        cedula = request.form['cedula']
-        nombre = request.form['nombre']
-        edad = int(request.form['edad'])
-        semanas = int(request.form['semanas'])
-        salario = float(request.form['salario'])
-        genero = request.form['genero']
-        
-        # Llama a tu método existente de pension_controller
-        resultado = controlador_pension.calcular_y_guardar(cedula, nombre, edad, semanas, salario, genero)
-        return render_template('pantalla_resultados_pension.html', resultado=resultado)
-    
+        try:
+            cedula = request.form['cedula'].strip()
+            nombre = request.form['nombre'].strip()
+            edad = int(request.form['edad'])
+            semanas = int(request.form['semanas'])
+            salario = float(request.form['salario'])
+            genero = request.form['genero'].strip()
+
+            # Llama al método real de HistorialPensionController
+            resultado = controlador_historial.calcular_y_guardar(
+                cedula=cedula,
+                nombre=nombre,
+                edad=edad,
+                semanas=semanas,
+                salario=salario,
+                genero=genero
+            )
+            return render_template('resultados_pension.html', resultado=resultado)
+        except ValueError as e:
+            return render_template('formulario_nuevo_calculo.html', error=f"Datos numéricos inválidos: {str(e)}")
+        except Exception as e:
+            return render_template('formulario_nuevo_calculo.html', error=f"Error en el proceso: {str(e)}")
+
     return render_template('formulario_nuevo_calculo.html')
 
-# Ruta para buscar el historial por cédula
+
 @blueprint.route('/buscar', methods=['GET', 'POST'])
 def buscar():
+    """Busca el historial de cálculos por cédula."""
     if request.method == 'POST':
-        cedula = request.form['cedula']
-        
-        # Llama a tu método existente de historial_controller
-        registros = controlador_historial.buscar_por_cedula(cedula)
-        return render_template('pantalla_resultados_pension.html', registros=registros)
-    
+        try:
+            cedula = request.form['cedula'].strip()
+            registros = controlador_historial.buscar_por_cedula(cedula)
+            return render_template('resultados_pension.html', registros=registros, cedula_buscada=cedula)
+        except Exception as e:
+            return render_template('formulario_buscar_historial.html', error=f"Error en la búsqueda: {str(e)}")
+
     return render_template('formulario_buscar_historial.html')

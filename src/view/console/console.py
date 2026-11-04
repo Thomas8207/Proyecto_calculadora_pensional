@@ -100,13 +100,6 @@ def solicitar_datos(controlador: CalculadoraPensionController) -> DatosPension:
         sexo=sexo,
     )
 
-
-<<<<<<< HEAD
-def mostrar_resultados(
-    controlador: CalculadoraPensionController, resultado: ResultadoPension
-) -> None:
-
-=======
 def formatear_resultado(resultado: ResultadoPension) -> List[str]:
     """Devuelve las líneas de texto del resultado, en el formato de la consola."""
     return [
@@ -119,10 +112,7 @@ def formatear_resultado(resultado: ResultadoPension) -> List[str]:
         f"PENSIÓN ESTIMADA: ${resultado.pension:,.2f}",
     ]
 
-
-def mostrar_resultados(resultado: ResultadoPension) -> None:
-    """Imprime en consola el resultado dentro de su "marco" visual."""
->>>>>>> 302322a6572c5e3054445e694b2018a32b6086a7
+def mostrar_resultados(controlador: CalculadoraPensionController, resultado: ResultadoPension) -> None:
     print("\n" + "=" * 50)
     print("             RESULTADOS")
     print("=" * 50)

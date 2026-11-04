@@ -1,24 +1,21 @@
-import sys
 import os
+import sys
+
+# Asegurar que la raíz del proyecto esté en el path de Python
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
 from flask import Flask
+from src.view.web.vista_pension import blueprint
 
-# 1. Calculamos la ruta raíz (dos carpetas hacia atrás desde view/web/)
-directorio_actual = os.path.dirname(os.path.abspath(__file__))
-raiz_proyecto = os.path.abspath(os.path.join(directorio_actual, "..", ".."))
+# Carpeta templates ubicada en la raíz
+template_folder_path = os.path.join(BASE_DIR, "templates")
 
-# 2. Agregamos la raíz y src al path del sistema para que Python encuentre tus módulos
-sys.path.append(raiz_proyecto)
-sys.path.append(os.path.join(raiz_proyecto, "src"))
+app = Flask(__name__, template_folder=template_folder_path)
+app.secret_key = "clave_secreta_pension"
 
-# Importamos el blueprint
-from view.web import vista_pension
+app.register_blueprint(blueprint)
 
-# 3. Le indicamos explícitamente a Flask dónde está la carpeta templates
-ruta_templates = os.path.join(raiz_proyecto, "templates")
-app = Flask(__name__, template_folder=ruta_templates)
-
-# Registramos el blueprint
-app.register_blueprint(vista_pension.blueprint)
-
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)
