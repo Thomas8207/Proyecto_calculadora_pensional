@@ -1,9 +1,3 @@
-"""Controlador del historial: crear/borrar tablas, insertar y consultar.
-
-Recibe una conexión psycopg2 y ejecuta el SQL. Reutiliza
-CalculadoraPensionController para el cálculo de negocio.
-"""
-
 from typing import List
 
 import psycopg2
@@ -33,7 +27,6 @@ class CedulaInvalida(ErrorHistorial):
             f"La cédula no es válida (recibido: '{cedula}'). "
             "Solución: ingrese solo dígitos, sin puntos ni espacios."
         )
-
 
 class NombreInvalido(ErrorHistorial):
     """El nombre está vacío."""
@@ -75,7 +68,6 @@ class HistorialPensionController:
             self.conexion.rollback()
             raise ErrorBaseDeDatos(error) from error
 
-    # --- Crear y borrar tablas ------------------------------------------
     def crear_tablas(self) -> None:
         """CREATE TABLE: crea las tablas si no existen."""
         self._ejecutar(_leer_sql("crear_tablas.sql"))
@@ -84,16 +76,10 @@ class HistorialPensionController:
         """DROP TABLE: borra las tablas y TODOS sus datos."""
         self._ejecutar(_leer_sql("borrar_tablas.sql"))
 
-    # --- Insertar -------------------------------------------------------
+
     def calcular_y_guardar(
         self, cedula: str, nombre: str, datos: DatosPension
     ) -> CalculoPension:
-        """Calcula la pensión y guarda el cálculo (INSERT INTO).
-
-        Si los datos violan una regla de negocio, ErrorCalculoPension se
-        propaga y NO se guarda nada. Si la persona ya existe (misma
-        cédula) se reutiliza en vez de duplicarla.
-        """
         cedula = self._validar_cedula(cedula)
         nombre = self._validar_nombre(nombre)
         resultado = self.calculadora.calcular(datos)
@@ -139,12 +125,7 @@ class HistorialPensionController:
 
         return self._buscar_por_id(calculo_id)
 
-    # --- Consultar ------------------------------------------------------
     def buscar_por_cedula(self, cedula: str) -> List[CalculoPension]:
-        """SELECT: cálculos de una persona, del más reciente al más antiguo.
-
-        Retorna lista vacía si la persona no existe o no tiene cálculos.
-        """
         cedula = self._validar_cedula(cedula)
         filas = self._ejecutar(
             CalculoPension.SQL_SELECT + " WHERE p.cedula = %s ORDER BY c.id DESC",
@@ -153,7 +134,6 @@ class HistorialPensionController:
         return [CalculoPension.desde_fila(fila) for fila in filas]
 
     def listar_todos(self) -> List[CalculoPension]:
-        """SELECT: todos los cálculos guardados."""
         filas = self._ejecutar(CalculoPension.SQL_SELECT + " ORDER BY c.id")
         return [CalculoPension.desde_fila(fila) for fila in filas]
 
@@ -163,7 +143,6 @@ class HistorialPensionController:
         )
         return CalculoPension.desde_fila(filas[0])
 
-    # --- Presentación y validación ---------------------------------------
     @staticmethod
     def formatear_calculo(calculo: CalculoPension) -> str:
         """Una línea de texto legible para mostrar un cálculo guardado."""

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+    {% if resultado %}
+        <div>
+            Resultado: {{ resultado }}
+        </div>
+    {% endif %}
+    
+    {% if registros %}
+        <table border="1">
+            {% for reg in registros %}
+            <tr>
+                <td>{{ reg[0] }}</td>
+                <td>{{ reg[1] }}</td>
+                <td>{{ reg[2] }}</td>
+                <td>{{ reg[3] }}</td>
+                <td>{{ reg[4] }}</td>
+                <td>{{ reg[5] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+    
+    <div>
+        <a href="{{ url_for('pension.index') }}">Volver al menú</a>
+    </div>
+</body>
+</html>

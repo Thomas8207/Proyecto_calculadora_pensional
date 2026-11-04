@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+    <form action="{{ url_for('pension.buscar') }}" method="POST">
+        <div>
+            Cédula: <input type="text" name="cedula" />
+        </div>
+        
+        <input type="submit" value="Buscar" />
+    </form>
+    <div>
+        <a href="{{ url_for('pension.index') }}">Volver al menú</a>
+    </div>
+</body>
+</html>

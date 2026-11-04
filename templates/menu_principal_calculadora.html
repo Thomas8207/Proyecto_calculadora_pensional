@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+    {% if mensaje %}
+        <div>{{ mensaje }}</div>
+    {% endif %}
+    
+    <div>
+        <a href="{{ url_for('pension.crear_tablas') }}">Crear Tablas en la BD</a>
+    </div>
+    <div>
+        <a href="{{ url_for('pension.insertar') }}">Calcular Pension</a>
+    </div>
+    <div>
+        <a href="{{ url_for('pension.buscar') }}">Buscar Historial</a>
+    </div>
+</body>
+</html>

@@ -39,13 +39,7 @@ Seleccione una opción:
 
 
 def solicitar_numero(mensaje: str) -> float:
-    """Solicita un número al usuario; reintenta hasta obtenerlo.
 
-    No lanza excepciones hacia arriba: los errores de formato (campo
-    vacío o texto no numérico) se resuelven aquí mismo, volviendo a
-    pedir el dato, para que el usuario nunca vea un traceback por un
-    simple error de tecleo.
-    """
     while True:
         entrada = input(mensaje).strip()
         if not entrada:
@@ -110,12 +104,7 @@ def solicitar_datos(controlador: CalculadoraPensionController) -> DatosPension:
 def mostrar_resultados(
     controlador: CalculadoraPensionController, resultado: ResultadoPension
 ) -> None:
-    """Imprime en consola las líneas de resultado formateadas.
 
-    El formateo del contenido (qué texto va en cada línea) lo hace el
-    controlador; esta función solo se encarga del encabezado y el
-    "marco" visual de asteriscos alrededor del resultado.
-    """
     print("\n" + "=" * 50)
     print("             RESULTADOS")
     print("=" * 50)
