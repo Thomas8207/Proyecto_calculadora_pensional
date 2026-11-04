@@ -1,11 +1,13 @@
 """Pruebas del controlador del historial (psycopg2 + PostgreSQL).
 
-Necesitan src/secret_config.py con una base PostgreSQL accesible; si no
-está disponible, las pruebas se omiten en vez de fallar.
+Estas pruebas solo usan los métodos públicos del controlador: no escriben
+SQL, no abren cursores y no conocen la conexión. Necesitan src/secret_config.py
+con una base PostgreSQL accesible; si no está disponible, se omiten en vez
+de fallar.
 
-Para NO tocar las tablas reales, cada prueba trabaja en un esquema
-temporal llamado ``pruebas``: el fixture setUp lo crea junto con las
-tablas, y tearDown lo elimina por completo.
+Para NO tocar las tablas reales, cada prueba trabaja en un esquema aparte
+llamado ``pruebas``: el fixture setUp deja las tablas limpias y tearDown
+las borra.
 """
 
 import sys
@@ -16,11 +18,11 @@ sys.path.append("src")
 from controller.historial_controller import (
     CedulaInvalida,
     ErrorBaseDeDatos,
+    ErrorConexionHistorial,
     HistorialPensionController,
     NombreInvalido,
 )
 from model import logica_pension
-from model.conexion import ConfiguracionFaltante, ErrorConexion, obtener_conexion
 
 ESQUEMA_PRUEBAS = "pruebas"
 
@@ -39,55 +41,39 @@ def _datos(**cambios) -> logica_pension.DatosPension:
 
 
 class BaseHistorial(unittest.TestCase):
-    """Test fixture: esquema temporal con las tablas creadas."""
+    """Test fixture: controlador con las tablas creadas y vacías."""
 
     def setUp(self):
+        self.controlador = HistorialPensionController.en_esquema(ESQUEMA_PRUEBAS)
         try:
-            self.conexion = obtener_conexion(esquema=ESQUEMA_PRUEBAS)
-        except (ConfiguracionFaltante, ErrorConexion) as error:
+            self.controlador.borrar_tablas()  # limpia restos de una corrida anterior
+            self.controlador.crear_tablas()
+        except ErrorConexionHistorial as error:
             raise unittest.SkipTest(f"Base de datos no disponible: {error}")
-        self.controlador = HistorialPensionController(self.conexion)
-        self.controlador.crear_tablas()
 
     def tearDown(self):
-        self.conexion.rollback()
-        with self.conexion.cursor() as cursor:
-            cursor.execute(f"DROP SCHEMA IF EXISTS {ESQUEMA_PRUEBAS} CASCADE")
-        self.conexion.commit()
-        self.conexion.close()
-
-    def _tablas(self) -> set:
-        with self.conexion.cursor() as cursor:
-            cursor.execute(
-                "SELECT table_name FROM information_schema.tables "
-                "WHERE table_schema = %s",
-                (ESQUEMA_PRUEBAS,),
-            )
-            return {fila[0] for fila in cursor.fetchall()}
-
-    def _contar(self, tabla: str) -> int:
-        with self.conexion.cursor() as cursor:
-            cursor.execute(f"SELECT COUNT(*) FROM {tabla}")
-            return cursor.fetchone()[0]
+        self.controlador.borrar_tablas()
+        self.controlador.cerrar()
 
 
 class TestCrearYBorrarTablas(BaseHistorial):
 
     def test_crear_tablas_normal(self):
-        self.assertEqual(self._tablas(), {"persona", "calculopension"})
+        self.assertEqual(self.controlador.listar_todos(), [])
 
-    def test_crear_tablas_dos_veces_no_falla(self):
+    def test_crear_tablas_dos_veces_no_borra_los_datos(self):
+        self.controlador.calcular_y_guardar("123", "Ana", _datos())
         self.controlador.crear_tablas()  # ya existían
-        self.assertEqual(self._tablas(), {"persona", "calculopension"})
+        self.assertEqual(len(self.controlador.listar_todos()), 1)
 
     def test_borrar_tablas_normal(self):
         self.controlador.borrar_tablas()
-        self.assertEqual(self._tablas(), set())
-
-    def test_error_consultar_sin_tablas(self):
-        self.controlador.borrar_tablas()
         with self.assertRaises(ErrorBaseDeDatos):
             self.controlador.listar_todos()
+
+    def test_borrar_tablas_dos_veces_no_falla(self):
+        self.controlador.borrar_tablas()
+        self.controlador.borrar_tablas()  # DROP ... IF EXISTS
 
 
 class TestInsertar(BaseHistorial):
@@ -96,13 +82,14 @@ class TestInsertar(BaseHistorial):
         calculo = self.controlador.calcular_y_guardar("123", "Ana", _datos())
         self.assertIsNotNone(calculo.id)
         self.assertAlmostEqual(calculo.pension, 6_300_000.00, 2)
-        self.assertEqual(self._contar("calculopension"), 1)
+        self.assertEqual(len(self.controlador.listar_todos()), 1)
 
     def test_insertar_misma_cedula_no_duplica_persona(self):
         self.controlador.calcular_y_guardar("123", "Ana", _datos())
         self.controlador.calcular_y_guardar("123", "Ana", _datos(edad=66))
-        self.assertEqual(self._contar("persona"), 1)
-        self.assertEqual(self._contar("calculopension"), 2)
+        calculos = self.controlador.listar_todos()
+        self.assertEqual(len(calculos), 2)
+        self.assertEqual(len({calculo.persona.id for calculo in calculos}), 1)
 
     def test_insertar_limpia_espacios_de_la_cedula(self):
         calculo = self.controlador.calcular_y_guardar(" 123 ", "Ana", _datos())
@@ -111,19 +98,19 @@ class TestInsertar(BaseHistorial):
     def test_error_insertar_cedula_no_numerica(self):
         with self.assertRaises(CedulaInvalida):
             self.controlador.calcular_y_guardar("abc", "Ana", _datos())
-        self.assertEqual(self._contar("calculopension"), 0)
+        self.assertEqual(self.controlador.listar_todos(), [])
 
     def test_error_insertar_nombre_vacio(self):
         with self.assertRaises(NombreInvalido):
             self.controlador.calcular_y_guardar("123", "   ", _datos())
+        self.assertEqual(self.controlador.listar_todos(), [])
 
     def test_error_insertar_datos_de_negocio_invalidos_no_guarda(self):
         with self.assertRaises(logica_pension.SemanasInsuficientes):
             self.controlador.calcular_y_guardar(
                 "123", "Ana", _datos(semanas_cotizadas=1200)
             )
-        self.assertEqual(self._contar("persona"), 0)
-        self.assertEqual(self._contar("calculopension"), 0)
+        self.assertEqual(self.controlador.listar_todos(), [])
 
 
 class TestBuscar(BaseHistorial):
@@ -143,6 +130,9 @@ class TestBuscar(BaseHistorial):
         calculos = self.controlador.buscar_por_cedula("111")
         self.assertEqual(calculos[0].edad, 66)
 
+    def test_buscar_ignora_espacios_de_la_cedula(self):
+        self.assertEqual(len(self.controlador.buscar_por_cedula(" 111 ")), 2)
+
     def test_buscar_cedula_inexistente_devuelve_lista_vacia(self):
         self.assertEqual(self.controlador.buscar_por_cedula("999"), [])
 
@@ -153,10 +143,6 @@ class TestBuscar(BaseHistorial):
         with self.assertRaises(CedulaInvalida):
             self.controlador.buscar_por_cedula("")
 
-    def test_formatear_calculo_contiene_nombre_y_pension(self):
-        texto = self.controlador.formatear_calculo(
-            self.controlador.buscar_por_cedula("222")[0]
-        )
-        self.assertIn("Luis", texto)
-        self.assertIn("Pensión", texto)
 
+if __name__ == "__main__":
+    unittest.main()

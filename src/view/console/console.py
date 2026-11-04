@@ -9,12 +9,12 @@ la base de datos y consultar el historial por cédula.
 
 import sys
 import os
-from typing import Callable
+from typing import Callable, List
 
 # Permite ejecutar el archivo directamente sin configurar Sources Root.
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-# La vista solo importa el controlador (y los tipos del modelo que
+# La vista solo importa los controladores (y los tipos del modelo que
 # necesita para anotar variables); nunca calcula nada por sí misma.
 from controller.pension_controller import (
     CalculadoraPensionController,
@@ -101,14 +101,32 @@ def solicitar_datos(controlador: CalculadoraPensionController) -> DatosPension:
     )
 
 
+<<<<<<< HEAD
 def mostrar_resultados(
     controlador: CalculadoraPensionController, resultado: ResultadoPension
 ) -> None:
 
+=======
+def formatear_resultado(resultado: ResultadoPension) -> List[str]:
+    """Devuelve las líneas de texto del resultado, en el formato de la consola."""
+    return [
+        f"IBL calculado: ${resultado.ibl:,.2f}",
+        f"Salarios mínimos (S): {resultado.relacion:.2f}",
+        f"Porcentaje base: {resultado.tasa_base:.2f}%",
+        f"Semanas adicionales: {resultado.semanas_adicionales}",
+        f"Incremento: {resultado.incremento:.2f}%",
+        f"Porcentaje total: {resultado.tasa_total:.2f}%",
+        f"PENSIÓN ESTIMADA: ${resultado.pension:,.2f}",
+    ]
+
+
+def mostrar_resultados(resultado: ResultadoPension) -> None:
+    """Imprime en consola el resultado dentro de su "marco" visual."""
+>>>>>>> 302322a6572c5e3054445e694b2018a32b6086a7
     print("\n" + "=" * 50)
     print("             RESULTADOS")
     print("=" * 50)
-    for linea in controlador.formatear_resultado(resultado=resultado):
+    for linea in formatear_resultado(resultado=resultado):
         print(linea)
     print("=" * 50)
 
@@ -117,7 +135,7 @@ def calcular_pension(controlador: CalculadoraPensionController) -> None:
     """Opción 1: pide los datos, calcula y muestra el resultado."""
     datos = solicitar_datos(controlador=controlador)
     resultado = controlador.calcular(datos=datos)
-    mostrar_resultados(controlador=controlador, resultado=resultado)
+    mostrar_resultados(resultado=resultado)
 
 
 def calcular_y_guardar(
@@ -156,6 +174,7 @@ def ejecutar_accion(
 
 
 def main() -> None:
+    """Punto de entrada de la CLI: muestra el menú hasta que se elija salir."""
     controlador = CalculadoraPensionController()
     historial = HistorialConsola()
 

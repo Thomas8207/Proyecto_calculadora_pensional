@@ -30,6 +30,9 @@ El sistema valida los datos, genera excepciones personalizadas cuando los
 datos no son válidos y muestra mensajes de error amigables al usuario, tanto
 en consola como en la GUI.
 
+Además, los cálculos se pueden guardar en una base de datos PostgreSQL y
+consultarse por cédula (ver la sección **Base de datos**).
+
 ## Arquitectura
 
 El proyecto usa una arquitectura **Modelo - Controlador - Vista**:
@@ -37,39 +40,63 @@ El proyecto usa una arquitectura **Modelo - Controlador - Vista**:
 | Capa | Ubicación | Responsabilidad |
 |------|-----------|-----------------|
 | Modelo | `src/model/logica_pension.py` | Cálculo de la pensión, IBL, tasa de reemplazo, validaciones y excepciones |
+| Modelo (BD) | `src/model/persona.py`, `src/model/calculo_pension.py` | Clases que representan las tablas `persona` y `calculopension` |
+| Modelo (BD) | `src/model/conexion.py` | Abre la conexión a PostgreSQL con los datos de `secret_config.py` |
 | Controlador | `src/controller/pension_controller.py` | Coordina vistas y modelo; traduce excepciones a mensajes amigables; formatea resultados |
-| Vista (consola) | `src/view/console/main.py` | Interfaz de línea de comandos |
-| Vista (GUI) | `src/view/gui/main.py` | Interfaz gráfica con Kivy |
+| Controlador | `src/controller/historial_controller.py` | Crea y borra tablas, inserta y busca cálculos en la base de datos |
+| Vista (consola) | `src/view/console/console.py` y `src/view/console/historial_console.py` | Menú de consola: calcular, guardar, buscar historial y crear tablas |
+| Vista (GUI) | `src/view/gui/gui.py` | Interfaz gráfica con Kivy |
 
 La **lógica de negocio vive únicamente en el modelo**; la consola y la GUI la
 comparten a través del mismo controlador (`CalculadoraPensionController`).
 Ninguna vista realiza cálculos por su cuenta.
+
+Guardar y buscar en la base de datos se hace desde la interfaz de consola; la
+GUI conserva su funcionamiento original.
 
 ### Estructura de carpetas
 
 ```
 Proyecto_calculadora_pensional/
 │
-├── main.py                  -> Punto de entrada (GUI, PyInstaller, Buildozer)
-├── requirements.txt         -> Dependencias (Kivy)
-├── buildozer.spec           -> Configuración para app Android
+├── main.py                   -> Punto de entrada (GUI, PyInstaller, Buildozer)
+├── requirements.txt          -> Dependencias (Kivy, psycopg2-binary)
+├── buildozer.spec            -> Configuración para app Android
+├── .gitignore                -> incluye secret_config.py
+│
+├── doc/
+│   └── trabajofinalcasosdeprueba.xlsx
+│
+├── sql/
+│   ├── crear_tablas.sql      -> Crea las tablas persona y calculopension
+│   ├── borrar_tablas.sql     -> Borra las tablas
+│   ├── insertar_calculo.sql  -> Ejemplo de INSERT para probar a mano
+│   └── buscar_calculo.sql    -> Ejemplo de SELECT para probar a mano
 │
 ├── src/
+│   ├── secret_config_sample.py  -> Plantilla (secret_config.py es local y no se sube)
 │   ├── model/
-│   │   └── logica_pension.py
+│   │   ├── logica_pension.py
+│   │   ├── persona.py
+│   │   ├── calculo_pension.py
+│   │   └── conexion.py
 │   ├── controller/
-│   │   └── pension_controller.py
+│   │   ├── pension_controller.py
+│   │   └── historial_controller.py
 │   └── view/
 │       ├── console/
-│       │   └── main.py
+│       │   ├── console.py
+│       │   └── historial_console.py
 │       └── gui/
-│           └── main.py
+│           └── gui.py
 │
 ├── tests/
 │   ├── test_pension.py      -> Pruebas del modelo (casos del Excel)
 │   ├── test_controller.py   -> Pruebas del controlador
-│   └── test_gui.py          -> Pruebas de la GUI (validación de campos,
-│                                simulador de semanas y guardado en archivo)
+│   ├── test_gui.py          -> Pruebas de la GUI (validación de campos,
+│   │                           simulador de semanas y guardado en archivo)
+│   └── test_historial_controller.py -> Pruebas de insertar, buscar y
+│                                       crear/borrar tablas (base de datos)
 │
 └── README.md
 ```
@@ -86,6 +113,8 @@ Proyecto_calculadora_pensional/
   ser un número entero (`62.9` se rechaza; `62.0` sí se acepta, porque
   no tiene parte decimal).
 - **Sexo**: `M` (hombre) o `F` (mujer).
+- **Cédula** y **nombre** (solo al guardar en la base de datos): la cédula
+  debe tener únicamente dígitos y el nombre no puede estar vacío.
 
 ## Proceso
 
@@ -178,7 +207,7 @@ pip install -r requirements.txt
 ### Interfaz gráfica (Kivy)
 
 ```
-python src/view/gui/main.py
+python src/view/gui/gui.py
 ```
 o desde la raíz:
 ```
@@ -188,8 +217,12 @@ python main.py
 ### Interfaz de consola
 
 ```
-python src/view/console/main.py
+python src/view/console/console.py
 ```
+
+La opción 1 del menú (calcular pensión) funciona sin base de datos. Las
+opciones 2, 3, 4 y 5 necesitan la base de datos configurada (ver la sección
+**Base de datos**).
 
 ### Pruebas unitarias
 
@@ -197,7 +230,7 @@ python src/view/console/main.py
 python -m unittest discover -s tests -v
 ```
 
-Se espera: `Ran 40 tests ... OK`
+Se espera: `Ran 56 tests ... OK`
 
 `tests/test_pension.py` (18 pruebas) y `tests/test_controller.py` (7
 pruebas) no dependen de Kivy. `tests/test_gui.py` (15 pruebas) construye
@@ -206,6 +239,69 @@ validación de campos enteros, el simulador de semanas adicionales y el
 guardado en archivo; si Kivy no está instalado o el entorno no tiene
 pantalla/GL disponible, esas 15 pruebas se omiten automáticamente
 (`skipped`) en lugar de romper el resto de la suite.
+
+`tests/test_historial_controller.py` (16 pruebas) prueba crear y borrar
+tablas, insertar y buscar contra PostgreSQL. Necesita `src/secret_config.py`
+configurado; si la base de datos no está disponible, esas pruebas se omiten
+(`skipped`).
+
+---
+
+## Base de datos (PostgreSQL en Render)
+
+El historial de cálculos se guarda en PostgreSQL, en las tablas `persona`
+y `calculopension` (una persona puede tener muchos cálculos).
+
+### 1. Crear la base de datos
+
+En Render, crear una base PostgreSQL y copiar sus datos de conexión
+(host, puerto, nombre de la base, usuario y contraseña).
+
+### 2. Configurar la conexión
+
+1. Copiar `src/secret_config_sample.py` como `src/secret_config.py`.
+2. Reemplazar los valores de ejemplo por los datos de su base.
+3. **No subir `secret_config.py` al repositorio**: está en `.gitignore`.
+
+### 3. Instalar dependencias y ejecutar
+
+```
+pip install -r requirements.txt
+python src/view/console/console.py
+```
+
+### 4. Crear las tablas y Borrar las tablas
+
+La primera vez, elegir la opción **4. Crear tablas** del menú.
+(También se puede ejecutar `sql/crear_tablas.sql` con `psql`.
+Para borrarlas: `sql/borrar_tablas.sql`.)
+
+Luego para borrarla, elige la Opcion **5. Borrar tablas** del menu.
+MUCHO CUIDADO QUE ESTO BORRA POR COMPLETO LAS TABLAS. CON PRECAUCION
+UTILIZARLA
+
+Los archivos de la carpeta `sql/` se usan así: `crear_tablas.sql` y
+`borrar_tablas.sql` los ejecuta el controlador (`historial_controller.py`);
+`insertar_calculo.sql` y `buscar_calculo.sql` son ejemplos para probar a mano.
+
+### 5. Insertar y buscar datos
+
+- Opción **2. Calcular y guardar en la base de datos**: pide cédula,
+  nombre y los datos de la pensión, y guarda el cálculo.
+- Opción **3. Buscar historial por cédula**: muestra los cálculos
+  guardados de esa persona, del más reciente al más antiguo.
+
+### 6. Ejecutar las pruebas
+
+Con `secret_config.py` configurado:
+
+```
+python -m unittest tests.test_historial_controller -v
+```
+
+Las pruebas trabajan en un esquema temporal llamado `pruebas`, por lo
+que no modifican las tablas reales. Si la base de datos no está
+disponible, se omiten (`skipped`).
 
 ---
 
@@ -387,51 +483,3 @@ Proyecto versionado con Git y alojado en GitHub (fork del proyecto
 recibido). La GUI se agregó en una rama de trabajo separada y luego se
 integró a `main`, manteniendo la consola y las pruebas unitarias intactas
 en todo momento.
-
-## Base de datos (PostgreSQL en Render)
-
-El historial de cálculos se guarda en PostgreSQL, en las tablas `persona`
-y `calculopension` (una persona puede tener muchos cálculos).
-
-### 1. Crear la base de datos
-
-En Render, crear una base PostgreSQL y copiar sus datos de conexión
-(host, puerto, nombre de la base, usuario y contraseña).
-
-### 2. Configurar la conexión
-
-1. Copiar `src/secret_config_sample.py` como `src/secret_config.py`.
-2. Reemplazar los valores de ejemplo por los datos de su base.
-3. **No subir `secret_config.py` al repositorio**: está en `.gitignore`.
-
-### 3. Instalar dependencias y ejecutar
-
-```
-pip install -r requirements.txt
-python src/view/console/console.py
-```
-
-### 4. Crear las tablas
-
-La primera vez, elegir la opción **4. Crear tablas** del menú.
-(También se puede ejecutar `sql/crear_tablas.sql` con `psql`.
-Para borrarlas: `sql/borrar_tablas.sql`.)
-
-### 5. Insertar y buscar datos
-
-- Opción **2. Calcular y guardar en la base de datos**: pide cédula,
-  nombre y los datos de la pensión, y guarda el cálculo.
-- Opción **3. Buscar historial por cédula**: muestra los cálculos
-  guardados de esa persona, del más reciente al más antiguo.
-
-### 6. Ejecutar las pruebas
-
-Con `secret_config.py` configurado:
-
-```
-python -m unittest tests.test_historial_controller -v
-```
-
-Las pruebas trabajan en un esquema temporal llamado `pruebas`, por lo
-que no modifican las tablas reales. Si la base de datos no está
-disponible, se omiten (`skipped`).
