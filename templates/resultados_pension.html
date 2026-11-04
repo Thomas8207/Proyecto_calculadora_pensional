@@ -1,31 +1,85 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
+    <meta charset="UTF-8">
+    <title>Resultado del Cálculo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h2 {
+            margin-bottom: 10px;
+        }
+        table {
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 6px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .resultado-destacado {
+            background-color: #e2f0d9;
+            color: #385723;
+            padding: 12px 16px;
+            border: 1px solid #c5e0b4;
+            display: inline-block;
+            font-size: 16px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
+
+    <h1>Calculadora Pensional</h1>
+
     {% if resultado %}
-        <div>
-            Resultado: {{ resultado }}
+        <h2>Resultado del Cálculo</h2>
+        {% if resultado.persona %}
+            <p><strong>Beneficiario:</strong> {{ resultado.persona.nombre }} (Cédula: {{ resultado.persona.cedula }})</p>
+        {% endif %}
+
+        <div class="resultado-destacado">
+            Su pensión mensual será de: <strong>${{ "{:,.2f}".format(resultado.pension) }}</strong>
         </div>
     {% endif %}
-    
-    {% if registros %}
-        <table border="1">
-            {% for reg in registros %}
-            <tr>
-                <td>{{ reg[0] }}</td>
-                <td>{{ reg[1] }}</td>
-                <td>{{ reg[2] }}</td>
-                <td>{{ reg[3] }}</td>
-                <td>{{ reg[4] }}</td>
-                <td>{{ reg[5] }}</td>
-            </tr>
-            {% endfor %}
-        </table>
+
+    {% if registros is defined %}
+        <h2>Historial de Cálculos para Cédula: {{ cedula_buscada }}</h2>
+        {% if registros %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Semanas Cotizadas</th>
+                        <th>Tasa de Reemplazo</th>
+                        <th>Pensión Mensual</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reg in registros %}
+                    <tr>
+                        <td>{{ reg.fecha.strftime('%Y-%m-%d %H:%M') if reg.fecha else 'N/A' }}</td>
+                        <td>{{ reg.semanas_cotizadas }}</td>
+                        <td>{{ "{:,.2f}".format(reg.tasa_total) }}%</td>
+                        <td>${{ "{:,.2f}".format(reg.pension) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No se encontraron registros para la cédula ingresada.</p>
+        {% endif %}
     {% endif %}
-    
-    <div>
-        <a href="{{ url_for('pension.index') }}">Volver al menú</a>
-    </div>
+
+    <br><br>
+    <a href="{{ url_for('pension.index') }}">Volver al menú</a>
+
 </body>
 </html>

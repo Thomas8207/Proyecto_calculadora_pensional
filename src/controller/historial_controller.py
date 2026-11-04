@@ -16,7 +16,10 @@ import psycopg2
 from psycopg2.extensions import connection as Conexion
 from psycopg2.extensions import cursor as Cursor
 
-from controller.pension_controller import CalculadoraPensionController
+try:
+    from src.controller.pension_controller import CalculadoraPensionController
+except ImportError:
+    from controller.pension_controller import CalculadoraPensionController
 from model.calculo_pension import CalculoPension
 from model.conexion import ConfiguracionFaltante, ErrorConexion, obtener_conexion
 from model.logica_pension import DatosPension

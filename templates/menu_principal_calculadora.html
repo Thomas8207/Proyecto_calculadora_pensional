@@ -1,22 +1,119 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
+    <meta charset="UTF-8">
+    <title>Calculadora Pensional</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h2 {
+            margin-bottom: 10px;
+        }
+        .mensaje {
+            background-color: #e2f0d9;
+            color: #385723;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #c5e0b4;
+            display: inline-block;
+        }
+        .error {
+            background-color: #fce4d6;
+            color: #c65911;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #f8cbad;
+            display: inline-block;
+        }
+        .seccion-admin {
+            margin-bottom: 25px;
+        }
+        table {
+            border-collapse: collapse;
+        }
+        td {
+            padding: 4px 8px;
+        }
+    </style>
 </head>
 <body>
+
     <h1>Calculadora Pensional</h1>
-    
+
     {% if mensaje %}
-        <div>{{ mensaje }}</div>
+        <div class="mensaje">{{ mensaje }}</div>
     {% endif %}
-    
-    <div>
-        <a href="{{ url_for('pension.crear_tablas') }}">Crear Tablas en la BD</a>
+
+    {% if error %}
+        <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <div class="seccion-admin">
+        <form action="{{ url_for('pension.crear_tablas') }}" method="POST" style="display:inline;">
+            <button type="submit">Crear Tablas en la Base de Datos</button>
+        </form>
     </div>
-    <div>
-        <a href="{{ url_for('pension.insertar') }}">Calcular Pension</a>
-    </div>
-    <div>
-        <a href="{{ url_for('pension.buscar') }}">Buscar Historial</a>
-    </div>
+
+    <h2>Buscar Historial de Cálculos</h2>
+    <form action="{{ url_for('pension.buscar') }}" method="POST">
+        <label for="buscar_cedula">Escriba el número de cédula:</label>
+        <input type="text" id="buscar_cedula" name="cedula" required>
+        <button type="submit">Buscar</button>
+    </form>
+
+    <br><br>
+
+    <!-- Formulario de cálculo e inserción -->
+    <h2>Calcular e insertar una pensión</h2>
+    <form action="{{ url_for('pension.insertar') }}" method="POST">
+        <table>
+            <tr>
+                <td><label for="cedula">Cédula:</label></td>
+                <td><input type="text" id="cedula" name="cedula" required></td>
+            </tr>
+            <tr>
+                <td><label for="nombre">Nombre:</label></td>
+                <td><input type="text" id="nombre" name="nombre" required></td>
+            </tr>
+            <tr>
+                <td><label for="edad">Edad:</label></td>
+                <td><input type="number" id="edad" name="edad" min="1" max="130" required></td>
+            </tr>
+            <tr>
+                <td><label for="sexo">Sexo / Género:</label></td>
+                <td>
+                    <select id="sexo" name="sexo" required>
+                        <option value="M">Masculino (M)</option>
+                        <option value="F">Femenino (F)</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td><label for="semanas_cotizadas">Semanas Cotizadas:</label></td>
+                <td><input type="number" id="semanas_cotizadas" name="semanas_cotizadas" min="0" required></td>
+            </tr>
+            <tr>
+                <td><label for="ibc_ultimos_10">IBC Últimos 10 Años:</label></td>
+                <td><input type="number" step="0.01" id="ibc_ultimos_10" name="ibc_ultimos_10" min="0" required></td>
+            </tr>
+            <tr>
+                <td><label for="ibc_toda_vida">IBC Toda la Vida:</label></td>
+                <td><input type="number" step="0.01" id="ibc_toda_vida" name="ibc_toda_vida" min="0" required></td>
+            </tr>
+            <tr>
+                <td><label for="salario_minimo_legal">Salario Mínimo Legal:</label></td>
+                <td><input type="number" step="0.01" id="salario_minimo_legal" name="salario_minimo_legal" min="0" required></td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <br>
+                    <input type="submit" value="Submit">
+                </td>
+            </tr>
+        </table>
+    </form>
+
 </body>
 </html>
